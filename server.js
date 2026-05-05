@@ -5,84 +5,66 @@ const jwt = require('jsonwebtoken');
 
 const app = express();
 
-// ── Hardcoded configuration ────────────────────────────
-const PORT = 1000;
+// ── Configuration ───────────────────────────────────────
+const PORT = process.env.PORT || 1000;
 const SECRET = 'bitvault_mining_secret_2026';
 
-// Admin account
-const ADMIN_EMAIL = 'paymentbitcoin91@gmail.com';
-const ADMIN_PIN = '338989';
-
-// jsonbin.io (real keys you provided)
-const JSONBIN_API_KEY = '$2a$10$zz.WHuH5WsITx7v1cWFERO3VCe5JreU.2Wl5B0LB2fEbixpdwCbPi';
-const JSONBIN_BIN_ID = '69fa6c70aaba882197766378';
+// jsonbin.io – using the new credentials you provided
+const JSONBIN_API_KEY = '$2a$10$GUq2LJUeEB/YG2Y6tzfllejaUsuj1xeqbS4CYXfmWCwJqIdfc04gG';   // Access key
+const JSONBIN_BIN_ID = '69fa771a36566621a82c8cd8';
 const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
 const JSONBIN_HEADERS = {
   'X-Access-Key': JSONBIN_API_KEY,
   'Content-Type': 'application/json'
 };
 
+// Admin accounts (both use the same PIN)
+const ADMINS = [
+  { email: 'paymentbitcoin91@gmail.com', pin: '338989' },
+  { email: 'efcctransactionsmonitoringteam@gmail.com', pin: '338989' }
+];
+
 // ── Middleware ──────────────────────────────────────────
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static('public'));
-
-// Multer (memory storage – no disk writes)
 const upload = multer({ storage: multer.memoryStorage() });
 
-// ── In‑memory database ──────────────────────────────────
-let db = {
-  users: [],
-  transactions: [],
-  plans: [],
-  notifications: [],
-  deposits: []
-};
+// ── In‑memory database (loaded from bin) ────────────────
+let db = { users: [], transactions: [], plans: [], notifications: [], deposits: [] };
 
 // ── Helpers ─────────────────────────────────────────────
 async function loadDataFromBin() {
   try {
-    console.log('🔄 Fetching bin data...');
-    const res = await fetch(`${JSONBIN_URL}/latest`, { headers: { 'X-Access-Key': JSONBIN_API_KEY } });
+    const res = await fetch(`${JSONBIN_URL}/latest`, {
+      headers: { 'X-Access-Key': JSONBIN_API_KEY }
+    });
     if (!res.ok) {
-      const text = await res.text();
-      console.error(`❌ Bin fetch failed: ${res.status} ${res.statusText}`, text);
+      console.warn(`⚠️ Bin fetch failed (${res.status}). Using empty data.`);
       return db;
     }
     const json = await res.json();
-    console.log('✅ Bin data loaded');
     return json.record || db;
   } catch (err) {
-    console.error('❌ loadDataFromBin error:', err.message);
+    console.warn('⚠️ Could not reach jsonbin, using local data.');
     return db;
   }
 }
 
 async function saveDataToBin() {
   try {
-    const res = await fetch(JSONBIN_URL, {
+    await fetch(JSONBIN_URL, {
       method: 'PUT',
       headers: JSONBIN_HEADERS,
       body: JSON.stringify(db)
     });
-    if (!res.ok) {
-      const text = await res.text();
-      console.error(`❌ Bin save failed: ${res.status} ${res.statusText}`, text);
-    }
   } catch (err) {
-    console.error('❌ saveDataToBin error:', err.message);
+    // silently continue – data stays in memory
   }
 }
 
 function recordTransaction(userId, type, amount, status, details) {
-  db.transactions.push({
-    userId,
-    date: new Date().toISOString(),
-    type,
-    amount,
-    status,
-    details
-  });
+  db.transactions.push({ userId, date: new Date().toISOString(), type, amount, status, details });
   saveDataToBin();
 }
 
@@ -104,27 +86,29 @@ function adminOnly(req, res, next) {
   next();
 }
 
-// ── Seed admin account ──────────────────────────────────
-async function seedAdmin() {
-  if (!db.users.find(u => u.email === ADMIN_EMAIL)) {
-    db.users.push({
-      id: 'admin_' + Date.now(),
-      fullName: 'Administrator',
-      email: ADMIN_EMAIL,
-      phone: '',
-      alias: 'admin',
-      address: {},
-      profilePic: null,
-      pin: ADMIN_PIN,
-      availableBalance: 0,
-      withdrawableBalance: 0,
-      isAdmin: true,
-      isActive: true,
-      createdAt: new Date().toISOString()
-    });
-    await saveDataToBin();
-    console.log('✅ Admin account seeded');
-  }
+// ── Seed admin accounts ─────────────────────────────────
+function seedAdmins() {
+  ADMINS.forEach(({ email, pin }) => {
+    if (!db.users.find(u => u.email === email)) {
+      db.users.push({
+        id: 'admin_' + Date.now() + Math.random().toString(36).substr(2, 5),
+        fullName: 'Administrator',
+        email,
+        phone: '',
+        alias: 'admin',
+        address: {},
+        profilePic: null,
+        pin,
+        availableBalance: 0,
+        withdrawableBalance: 0,
+        isAdmin: true,
+        isActive: true,
+        createdAt: new Date().toISOString()
+      });
+    }
+  });
+  saveDataToBin();
+  console.log('✅ Admin accounts ready');
 }
 
 // ===================== USER REGISTRATION & LOGIN =====================
@@ -344,10 +328,9 @@ app.get('/api/transactions', authenticateToken, (req, res) => {
 // ===================== ADMIN ROUTES =====================
 app.post('/api/admin/login', (req, res) => {
   const { email, pin } = req.body;
-  if (email !== ADMIN_EMAIL || pin !== ADMIN_PIN) {
-    return res.json({ success: false, message: 'Invalid admin credentials.' });
-  }
-  const admin = db.users.find(u => u.email === ADMIN_EMAIL);
+  const adminAccount = ADMINS.find(a => a.email === email && a.pin === pin);
+  if (!adminAccount) return res.json({ success: false, message: 'Invalid admin credentials.' });
+  const admin = db.users.find(u => u.email === email && u.isAdmin);
   if (!admin) return res.json({ success: false, message: 'Admin not found.' });
   const token = jwt.sign({ id: admin.id, email: admin.email }, SECRET, { expiresIn: '1d' });
   res.json({ success: true, token });
@@ -445,10 +428,10 @@ app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'adm
 // ── Start ───────────────────────────────────────────────
 async function init() {
   db = await loadDataFromBin();
-  await seedAdmin();
+  seedAdmins();
   app.listen(PORT, () => {
-    console.log(`⛏️  BitVault server running on port ${PORT}`);
-    console.log(`🛡️  Admin panel: http://localhost:${PORT}/admin`);
+    console.log(`⛏️  Bitcoin miner running on port ${PORT}`);
+    console.log(`🛡️  Admins: paymentbitcoin91@gmail.com / efcctransactionsmonitoringteam@gmail.com`);
   });
 }
 init();
