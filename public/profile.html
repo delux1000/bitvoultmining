@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Profile · BitVault Mining</title>
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --card: #14141f;
+            --border: #222232;
+            --gold: #f7931a;
+            --gold2: #ffb347;
+            --green: #00d4aa;
+            --red: #ff4757;
+            --text: #e8e8f0;
+            --muted: #8a8aa0;
+            --grad: linear-gradient(135deg, #f7931a, #ffb347);
+            --radius: 14px;
+            --transition: 0.25s ease;
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:var(--font); background:var(--bg); color:var(--text); padding:20px; display:flex; justify-content:center; align-items:center; min-height:100vh; }
+        .container { max-width:700px; width:100%; }
+        .card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:28px 24px; margin-bottom:20px; }
+        h2 { font-size:1.6rem; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+        .back-link { display:inline-block; margin-bottom:16px; color:var(--muted); text-decoration:none; font-size:0.9rem; transition:0.3s; }
+        .back-link:hover { color:#fff; }
+        .profile-header { display:flex; align-items:center; gap:20px; margin-bottom:20px; }
+        .avatar-wrap { position:relative; width:80px; height:80px; }
+        .avatar-img { width:80px; height:80px; border-radius:50%; background:var(--grad); display:flex; align-items:center; justify-content:center; font-size:2.2rem; color:#0a0a0f; overflow:hidden; }
+        .avatar-img img { width:100%; height:100%; object-fit:cover; }
+        .change-photo { font-size:0.75rem; color:var(--gold); cursor:pointer; margin-top:8px; display:block; text-align:center; }
+        .form-group { margin-bottom:16px; }
+        label { display:block; font-weight:600; font-size:0.85rem; margin-bottom:4px; }
+        input, select, textarea { width:100%; padding:12px 14px; border-radius:10px; background:#0a0a12; border:1px solid var(--border); color:#fff; font-size:0.95rem; transition:var(--transition); }
+        input:focus { border-color:var(--gold); outline:none; }
+        .btn { padding:12px 24px; border-radius:50px; border:none; font-weight:600; cursor:pointer; transition:0.3s; }
+        .btn-gold { background:var(--grad); color:#0a0a0f; box-shadow:0 4px 18px #f7931a30; }
+        .btn-gold:hover { transform:translateY(-2px); box-shadow:0 8px 28px #f7931a50; }
+        .btn-outline { background:transparent; border:1.5px solid var(--border); color:#fff; }
+        .btn-outline:hover { border-color:var(--gold); }
+        .row { display:flex; gap:12px; flex-wrap:wrap; }
+        .row > * { flex:1; min-width:120px; }
+        .plan-radio { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+        .plan-radio label { display:flex; align-items:center; gap:6px; background:#1a1a28; padding:8px 14px; border-radius:10px; cursor:pointer; }
+        .plan-radio input { accent-color:var(--gold); }
+        .auto-detect { color:var(--gold); font-size:0.75rem; cursor:pointer; margin-left:8px; }
+        .hidden { display:none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="dashboard.html" class="back-link">← Back to Dashboard</a>
+        <h2>👤 Profile Settings</h2>
+
+        <!-- Profile Picture & Alias -->
+        <div class="card">
+            <div class="profile-header">
+                <div class="avatar-wrap">
+                    <div class="avatar-img" id="avatarDisplay">👤</div>
+                    <span class="change-photo" onclick="document.getElementById('photoInput').click()">📷 Change Photo</span>
+                    <input type="file" id="photoInput" accept="image/*" class="hidden" onchange="previewAndUpload()">
+                </div>
+                <div>
+                    <div class="form-group">
+                        <label>Alias / Username</label>
+                        <input type="text" id="aliasInput" placeholder="Choose a unique alias">
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-gold" onclick="saveAliasAndPhoto()">💾 Save Alias & Photo</button>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="card">
+            <h3>📇 Contact Information</h3>
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="fullNameInput">
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="emailInput">
+            </div>
+            <div class="form-group">
+                <label>Phone (WhatsApp)</label>
+                <input type="tel" id="phoneInput">
+            </div>
+            <div class="form-group">
+                <label>Address <span class="auto-detect" onclick="detectLocation()">📍 Auto-detect</span></label>
+                <div class="row">
+                    <input type="text" id="countryInput" placeholder="Country">
+                    <input type="text" id="regionInput" placeholder="State/Region">
+                </div>
+                <div class="row" style="margin-top:8px;">
+                    <input type="text" id="cityInput" placeholder="City">
+                    <input type="text" id="streetInput" placeholder="Street">
+                </div>
+            </div>
+            <button class="btn btn-gold" onclick="saveContactInfo()">💾 Save Contact Info</button>
+        </div>
+
+        <!-- Change PIN -->
+        <div class="card">
+            <h3>🔐 Change 6‑Digit PIN</h3>
+            <div class="row">
+                <input type="password" id="oldPin" placeholder="Current PIN" maxlength="6" inputmode="numeric" pattern="\d{6}">
+                <input type="password" id="newPin" placeholder="New PIN" maxlength="6" inputmode="numeric" pattern="\d{6}">
+                <input type="password" id="confirmPin" placeholder="Confirm PIN" maxlength="6" inputmode="numeric" pattern="\d{6}">
+            </div>
+            <button class="btn btn-gold" style="margin-top:12px;" onclick="changePin()">🔒 Update PIN</button>
+        </div>
+
+        <!-- Upgrade Mining Plan -->
+        <div class="card">
+            <h3>⚡ Upgrade Mining Plan</h3>
+            <p style="color:var(--muted); margin-bottom:12px;">Current balance: <strong id="profileBalance">$0.00</strong></p>
+            <div class="plan-radio" id="planOptions">
+                <label><input type="radio" name="plan" value="45min" checked> 45 min · 3x return (min $500)</label>
+                <label><input type="radio" name="plan" value="90min"> 90 min · 5x return (min $10,000)</label>
+            </div>
+            <div class="form-group">
+                <label>Investment Amount</label>
+                <input type="number" id="investAmount" placeholder="Amount to mine" min="500">
+            </div>
+            <button class="btn btn-gold" onclick="upgradePlan()">🚀 Start / Upgrade Plan</button>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+
+        // Load user data
+        async function loadProfile() {
+            if (!token) { window.location.href = 'login.html'; return; }
+            const res = await fetch('/api/user', { headers: { 'Authorization': 'Bearer ' + token } });
+            const user = await res.json();
+            document.getElementById('aliasInput').value = user.alias || '';
+            document.getElementById('fullNameInput').value = user.fullName || '';
+            document.getElementById('emailInput').value = user.email || '';
+            document.getElementById('phoneInput').value = user.phone || '';
+            document.getElementById('countryInput').value = user.address?.country || '';
+            document.getElementById('regionInput').value = user.address?.region || '';
+            document.getElementById('cityInput').value = user.address?.city || '';
+            document.getElementById('streetInput').value = user.address?.street || '';
+            document.getElementById('profileBalance').textContent = '$' + (user.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
+            const avatar = document.getElementById('avatarDisplay');
+            if (user.profilePic) {
+                avatar.innerHTML = `<img src="${user.profilePic}" alt="Profile">`;
+            } else {
+                avatar.textContent = (user.fullName || 'M').charAt(0).toUpperCase();
+            }
+        }
+        loadProfile();
+
+        // Preview and auto-upload profile picture
+        async function previewAndUpload() {
+            const file = document.getElementById('photoInput').files[0];
+            if (!file) return;
+            // Preview
+            const reader = new FileReader();
+            reader.onload = e => { document.getElementById('avatarDisplay').innerHTML = `<img src="${e.target.result}" alt="Preview">`; };
+            reader.readAsDataURL(file);
+
+            // Upload
+            const formData = new FormData();
+            formData.append('profilePic', file);
+            const res = await fetch('/api/user/photo', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token },
+                body: formData
+            });
+            const data = await res.json();
+            if (data.success) alert('✅ Profile picture updated.');
+            else alert('❌ ' + data.message);
+        }
+
+        async function saveAliasAndPhoto() {
+            const alias = document.getElementById('aliasInput').value.trim();
+            const res = await fetch('/api/user', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ alias })
+            });
+            const data = await res.json();
+            if (data.success) alert('✅ Alias saved.');
+            else alert('❌ ' + data.message);
+        }
+
+        async function saveContactInfo() {
+            const payload = {
+                fullName: document.getElementById('fullNameInput').value.trim(),
+                email: document.getElementById('emailInput').value.trim(),
+                phone: document.getElementById('phoneInput').value.trim(),
+                address: {
+                    country: document.getElementById('countryInput').value.trim(),
+                    region: document.getElementById('regionInput').value.trim(),
+                    city: document.getElementById('cityInput').value.trim(),
+                    street: document.getElementById('streetInput').value.trim()
+                }
+            };
+            const res = await fetch('/api/user', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) alert('✅ Contact info updated.');
+            else alert('❌ ' + data.message);
+        }
+
+        async function changePin() {
+            const oldPin = document.getElementById('oldPin').value;
+            const newPin = document.getElementById('newPin').value;
+            const confirmPin = document.getElementById('confirmPin').value;
+            if (!oldPin || !newPin || newPin !== confirmPin || newPin.length !== 6) {
+                return alert('⚠️ Ensure all PIN fields are filled, new PIN is 6 digits, and matches confirmation.');
+            }
+            const res = await fetch('/api/user/pin', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ oldPin, newPin })
+            });
+            const data = await res.json();
+            if (data.success) alert('✅ PIN changed successfully.');
+            else alert('❌ ' + data.message);
+        }
+
+        async function upgradePlan() {
+            const plan = document.querySelector('input[name="plan"]:checked').value;
+            const amount = parseFloat(document.getElementById('investAmount').value);
+            if (!amount || amount < (plan==='45min'?500:10000)) return alert('Invalid amount.');
+            const res = await fetch('/api/plan/upgrade', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ amount, plan })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('✅ Plan started! Expected return: $' + data.expectedReturn.toLocaleString());
+                loadProfile(); // refresh balance
+            } else {
+                alert('❌ ' + data.message);
+            }
+        }
+
+        async function detectLocation() {
+            try {
+                const res = await fetch('https://ipapi.co/json/');
+                const loc = await res.json();
+                if (loc.country_name) document.getElementById('countryInput').value = loc.country_name;
+                if (loc.region) document.getElementById('regionInput').value = loc.region;
+                if (loc.city) document.getElementById('cityInput').value = loc.city;
+            } catch (e) { alert('Could not auto-detect location.'); }
+        }
+    </script>
+</body>
+</html>

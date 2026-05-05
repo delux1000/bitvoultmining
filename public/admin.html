@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Admin Panel · BitVault Mining</title>
+    <style>
+        :root {
+            --bg: #0a0a0f; --card: #14141f; --card2: #1a1a28; --border: #222232;
+            --gold: #f7931a; --gold2: #ffb347; --green: #00d4aa; --red: #ff4757;
+            --blue: #4da6ff; --text: #e8e8f0; --muted: #8a8aa0;
+            --grad: linear-gradient(135deg, #f7931a, #ffb347); --radius: 14px;
+            --shadow-gold: 0 0 30px rgba(247,147,26,0.15); --transition: 0.25s ease;
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: var(--font); background: var(--bg); color: var(--text); min-height:100vh; }
+        .login-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background: var(--bg); display:flex; align-items:center; justify-content:center; z-index:1000; transition: opacity 0.3s ease; }
+        .login-card { background: var(--card); border:1px solid var(--border); border-radius: var(--radius); padding: 36px 28px; width:100%; max-width:400px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+        .login-card h2 { text-align:center; margin-bottom:24px; }
+        .form-group { margin-bottom:18px; }
+        .form-group label { display:block; font-weight:600; margin-bottom:6px; font-size:0.85rem; }
+        .form-group input { width:100%; padding:12px 14px; border-radius:10px; background:#0a0a12; border:1px solid var(--border); color:#fff; font-size:0.95rem; }
+        .btn { width:100%; padding:14px; border-radius:50px; border:none; font-weight:700; font-size:1rem; cursor:pointer; transition:0.3s; background:var(--grad); color:#0a0a0f; margin-top:10px; }
+        .btn:hover { transform:translateY(-2px); box-shadow:0 8px 25px #f7931a40; }
+        .error-msg { color:var(--red); font-size:0.8rem; margin-top:6px; display:none; }
+        .admin-panel { display:none; padding:20px; max-width:1200px; margin:0 auto; }
+        .panel-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; flex-wrap:wrap; gap:16px; }
+        .panel-header h1 { font-size:1.8rem; font-weight:800; }
+        .btn-outline { background:transparent; border:1.5px solid var(--border); color:#fff; width:auto; padding:10px 20px; font-size:0.85rem; }
+        .btn-outline:hover { border-color:var(--gold); }
+        .btn-sm { padding:8px 16px; width:auto; font-size:0.8rem; }
+        .btn-danger { background:var(--red); color:#fff; width:auto; }
+        .btn-success { background:var(--green); color:#000; width:auto; }
+        .card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:24px; margin-bottom:24px; }
+        .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:18px; margin-bottom:24px; }
+        .stat-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; }
+        .stat-card .stat-icon { font-size:2rem; }
+        .stat-card .stat-label { color:var(--muted); font-size:0.8rem; text-transform:uppercase; }
+        .stat-card .stat-value { font-size:2rem; font-weight:800; margin-top:4px; }
+        .search-bar { display:flex; gap:10px; margin-bottom:16px; }
+        .search-bar input { flex:1; padding:10px 14px; border-radius:10px; background:#0a0a12; border:1px solid var(--border); color:#fff; }
+        table { width:100%; border-collapse:collapse; background:var(--card); border-radius:var(--radius); overflow:hidden; }
+        th, td { padding:12px 14px; text-align:left; border-bottom:1px solid var(--border); font-size:0.85rem; }
+        th { background:var(--card2); color:var(--muted); font-weight:600; }
+        .badge { padding:4px 10px; border-radius:50px; font-size:0.7rem; font-weight:600; }
+        .badge-active { background:#00d4aa15; color:var(--green); }
+        .badge-inactive { background:#ff475715; color:var(--red); }
+        .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:none; align-items:center; justify-content:center; z-index:2000; }
+        .modal.active { display:flex; }
+        .modal-content { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:28px; max-width:400px; width:100%; }
+        .action-btns { display:flex; gap:8px; flex-wrap:wrap; align-items: center; }
+        .code-display { font-size:0.7rem; color: var(--gold); margin-left: 4px; }
+    </style>
+</head>
+<body>
+
+    <!-- Login Overlay -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-card">
+            <h2>🛡️ Admin Login</h2>
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="adminEmail" value="paymentbitcoin91@gmail.com" required>
+                </div>
+                <div class="form-group">
+                    <label>6‑Digit PIN</label>
+                    <input type="password" id="adminPin" maxlength="6" pattern="\d{6}" placeholder="******" required oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                </div>
+                <div class="error-msg" id="loginError"></div>
+                <button type="submit" class="btn">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div class="admin-panel" id="adminPanel">
+        <div class="panel-header">
+            <h1>🛡️ Admin Panel</h1>
+            <button class="btn btn-outline" onclick="logoutAdmin()">🚪 Logout</button>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="grid">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-label">Total Users</div>
+                <div class="stat-value" id="totalUsers">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⏳</div>
+                <div class="stat-label">Pending Deposits</div>
+                <div class="stat-value" id="pendingDepositsCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-label">Active Plans</div>
+                <div class="stat-value" id="activePlansCount">0</div>
+            </div>
+        </div>
+
+        <!-- Users Section -->
+        <div class="card">
+            <h2>👥 User Management</h2>
+            <div class="search-bar">
+                <input type="text" id="userSearch" placeholder="Search by name, email, phone..." oninput="renderUsers()">
+                <button class="btn btn-sm" onclick="fetchUsers()">🔄 Refresh</button>
+            </div>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead><tr><th>Name</th><th>Email</th><th>Available</th><th>Withdrawable</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody id="usersTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pending Deposits -->
+        <div class="card">
+            <h2>⏳ Pending Deposits</h2>
+            <div id="pendingDepositsContainer"></div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="card">
+            <h2>📢 Send Notification</h2>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <input type="text" id="notifyUserId" placeholder="User ID (blank = all)" style="flex:1;">
+                <input type="text" id="notifyMessage" placeholder="Message..." style="flex:2;">
+                <button class="btn btn-sm" onclick="sendNotification()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Change PIN -->
+    <div class="modal" id="pinModal">
+        <div class="modal-content">
+            <h3>🔐 Change User PIN</h3>
+            <input type="text" id="pinUserId" hidden>
+            <label>New 6‑digit PIN</label>
+            <input type="text" id="newPin" maxlength="6" pattern="\d{6}" placeholder="New PIN">
+            <div style="margin-top:16px; display:flex; gap:10px;">
+                <button class="btn btn-sm" onclick="changeUserPin()">Save</button>
+                <button class="btn btn-sm btn-outline" onclick="closeModal('pinModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Credit -->
+    <div class="modal" id="creditModal">
+        <div class="modal-content">
+            <h3>💵 Credit Available Balance</h3>
+            <input type="text" id="creditUserId" hidden>
+            <label>Amount (USD)</label>
+            <input type="number" id="creditAmount" placeholder="Amount">
+            <div style="margin-top:16px; display:flex; gap:10px;">
+                <button class="btn btn-sm" onclick="creditUser()">Credit</button>
+                <button class="btn btn-sm btn-outline" onclick="closeModal('creditModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = '/api/admin';
+        const TOKEN_KEY = 'adminToken';
+        let allUsers = [];
+        let pendingDeposits = [];
+
+        // ---------- Login ----------
+        document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('adminEmail').value.trim();
+            const pin = document.getElementById('adminPin').value.trim();
+            try {
+                const res = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email, pin})
+                });
+                const data = await res.json();
+                if (data.success) {
+                    localStorage.setItem(TOKEN_KEY, data.token);
+                    document.getElementById('loginOverlay').style.display = 'none';
+                    document.getElementById('adminPanel').style.display = 'block';
+                    fetchAllData();
+                } else {
+                    document.getElementById('loginError').textContent = data.message;
+                    document.getElementById('loginError').style.display = 'block';
+                }
+            } catch (err) {
+                document.getElementById('loginError').textContent = 'Server error.';
+                document.getElementById('loginError').style.display = 'block';
+            }
+        });
+
+        function logoutAdmin() {
+            localStorage.removeItem(TOKEN_KEY);
+            window.location.reload();
+        }
+
+        function authHeaders() {
+            const token = localStorage.getItem(TOKEN_KEY);
+            return { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' };
+        }
+
+        // ---------- Data fetching ----------
+        async function fetchAllData() {
+            await Promise.all([fetchUsers(), fetchPendingDeposits()]);
+        }
+
+        async function fetchUsers() {
+            try {
+                const res = await fetch(API + '/users', { headers: authHeaders() });
+                const data = await res.json();
+                if (data.success) {
+                    allUsers = data.users.filter(u => !u.isAdmin);
+                    document.getElementById('totalUsers').textContent = allUsers.length;
+                    renderUsers();
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function fetchPendingDeposits() {
+            try {
+                const res = await fetch(API + '/deposits/pending', { headers: authHeaders() });
+                const data = await res.json();
+                if (data.deposits) {
+                    pendingDeposits = data.deposits;
+                    document.getElementById('pendingDepositsCount').textContent = pendingDeposits.length;
+                    renderPendingDeposits();
+                }
+            } catch(e) {}
+        }
+
+        function renderUsers() {
+            const search = document.getElementById('userSearch').value.toLowerCase();
+            const filtered = allUsers.filter(u => 
+                (u.fullName||'').toLowerCase().includes(search) ||
+                (u.email||'').toLowerCase().includes(search) ||
+                (u.phone||'').toLowerCase().includes(search) ||
+                (u.id||'').toLowerCase().includes(search)
+            );
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = filtered.map(u => `
+                <tr>
+                    <td>${u.fullName || 'N/A'} <br><small style="color:var(--muted)">${u.id}</small></td>
+                    <td>${u.email}</td>
+                    <td style="color:var(--green)">$${(u.availableBalance||0).toLocaleString()}</td>
+                    <td style="color:var(--blue)">$${(u.withdrawableBalance||0).toLocaleString()}</td>
+                    <td><span class="badge ${u.isActive ? 'badge-active' : 'badge-inactive'}">${u.isActive ? 'Active' : 'Deactivated'}</span></td>
+                    <td class="action-btns">
+                        <button class="btn btn-sm" onclick="openCreditModal('${u.id}')">+</button>
+                        <button class="btn btn-sm btn-outline" onclick="toggleUserActive('${u.id}', ${!u.isActive})">${u.isActive ? 'Deactivate' : 'Activate'}</button>
+                        <button class="btn btn-sm btn-outline" onclick="openPinModal('${u.id}')">🔐</button>
+                        <button class="btn btn-sm btn-outline" onclick="generateAccessCode('${u.id}')">🔑 Code</button>
+                        ${u.accessCode ? `<span class="code-display">Code: ${u.accessCode}</span>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderPendingDeposits() {
+            const container = document.getElementById('pendingDepositsContainer');
+            if (pendingDeposits.length === 0) {
+                container.innerHTML = '<p style="color:var(--muted)">No pending deposits.</p>';
+                return;
+            }
+            container.innerHTML = pendingDeposits.map(d => `
+                <div style="border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <strong>${d.userName || 'Unknown'}</strong> - $${d.amount.toLocaleString()}
+                        <br><small style="color:var(--muted)">ID: ${d.id}</small>
+                        ${d.receiptUrl ? `<br><a href="${d.receiptUrl}" target="_blank" style="color:var(--gold);">View Receipt</a>` : ''}
+                    </div>
+                    <div class="action-btns">
+                        <button class="btn btn-sm btn-success" onclick="approveDeposit('${d.id}')">Approve</button>
+                        <button class="btn btn-sm btn-danger" onclick="cancelDeposit('${d.id}')">Cancel</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ---------- User Actions ----------
+        function openCreditModal(userId) {
+            document.getElementById('creditUserId').value = userId;
+            document.getElementById('creditModal').classList.add('active');
+        }
+
+        async function creditUser() {
+            const userId = document.getElementById('creditUserId').value;
+            const amount = parseFloat(document.getElementById('creditAmount').value);
+            if (!amount || amount <= 0) return alert('Invalid amount.');
+            await fetch(API + '/credit', {
+                method: 'POST',
+                headers: authHeaders(),
+                body: JSON.stringify({ userId, amount })
+            });
+            closeModal('creditModal');
+            fetchUsers();
+        }
+
+        async function toggleUserActive(userId, makeActive) {
+            await fetch(API + '/user/status', {
+                method: 'PUT',
+                headers: authHeaders(),
+                body: JSON.stringify({ userId, isActive: makeActive })
+            });
+            fetchUsers();
+        }
+
+        function openPinModal(userId) {
+            document.getElementById('pinUserId').value = userId;
+            document.getElementById('pinModal').classList.add('active');
+        }
+
+        async function changeUserPin() {
+            const userId = document.getElementById('pinUserId').value;
+            const newPin = document.getElementById('newPin').value;
+            if (!newPin || newPin.length !== 6) return alert('PIN must be 6 digits.');
+            await fetch(API + '/user/pin', {
+                method: 'PUT',
+                headers: authHeaders(),
+                body: JSON.stringify({ userId, newPin })
+            });
+            closeModal('pinModal');
+            alert('PIN updated.');
+        }
+
+        // ---------- Access Code Generation ----------
+        async function generateAccessCode(userId) {
+            try {
+                const res = await fetch(API + '/user/accesscode', {
+                    method: 'POST',
+                    headers: authHeaders(),
+                    body: JSON.stringify({ userId })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('New access code generated: ' + data.accessCode);
+                    fetchUsers(); // refresh to show the new code
+                } else {
+                    alert(data.message || 'Failed to generate code.');
+                }
+            } catch (err) {
+                alert('Server error.');
+            }
+        }
+
+        // ---------- Deposit Actions ----------
+        async function approveDeposit(id) {
+            await fetch(API + '/deposit/approve/' + id, { method: 'POST', headers: authHeaders() });
+            fetchPendingDeposits();
+            fetchUsers();
+        }
+
+        async function cancelDeposit(id) {
+            await fetch(API + '/deposit/cancel/' + id, { method: 'POST', headers: authHeaders() });
+            fetchPendingDeposits();
+        }
+
+        // ---------- Notifications ----------
+        async function sendNotification() {
+            const userId = document.getElementById('notifyUserId').value || 'all';
+            const message = document.getElementById('notifyMessage').value;
+            if (!message) return alert('Enter a message.');
+            await fetch(API + '/notify', {
+                method: 'POST',
+                headers: authHeaders(),
+                body: JSON.stringify({ userId, message })
+            });
+            alert('Notification sent.');
+            document.getElementById('notifyMessage').value = '';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Auto-login if token exists
+        (function() {
+            if (localStorage.getItem(TOKEN_KEY)) {
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                fetchAllData();
+            }
+        })();
+    </script>
+</body>
+</html>

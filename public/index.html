@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>BitVault Mining · Multiply Your Bitcoin in Minutes</title>
+
+    <!-- Favicon (Bitcoin logo) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23f7931a'/><text x='50' y='72' font-size='65' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold'>₿</text></svg>" type="image/svg+xml">
+
+    <!-- SEO Meta -->
+    <meta name="description" content="BitVault Mining – Start mining Bitcoin with our ASIC farms and earn up to 5x returns in 45‑90 minutes. Trusted by thousands. Deposit, mine, and withdraw instantly.">
+    <link rel="canonical" href="https://bitvoultmining.onrender.com/">
+
+    <!-- Open Graph / WhatsApp / Social -->
+    <meta property="og:title" content="BitVault Mining · Multiply Your Bitcoin in Minutes">
+    <meta property="og:description" content="Start mining with cutting‑edge ASIC farms. 3x return in 45 minutes, secure and transparent.">
+    <meta property="og:image" content="https://bitvoultmining.onrender.com/og-image.png">
+    <meta property="og:url" content="https://bitvoultmining.onrender.com/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="BitVault Mining">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="BitVault Mining · Multiply Your Bitcoin in Minutes">
+    <meta name="twitter:description" content="Start mining Bitcoin and earn up to 5x returns in just 45‑90 minutes. Withdraw instantly to bank or wallet.">
+    <meta name="twitter:image" content="https://bitvoultmining.onrender.com/og-image.png">
+
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #111118;
+            --bg-card: #16161f;
+            --gold: #f7931a;
+            --gold-light: #ffb347;
+            --gold-dark: #d4780a;
+            --accent: #ffd700;
+            --text-primary: #e8e8f0;
+            --text-secondary: #a0a0b8;
+            --text-muted: #6b6b80;
+            --border: #252535;
+            --border-glow: #f7931a40;
+            --green: #00d4aa;
+            --red: #ff4757;
+            --blue: #4da6ff;
+            --gradient-1: linear-gradient(135deg, #f7931a, #ffb347);
+            --gradient-2: linear-gradient(135deg, #1a1a2e, #16213e);
+            --gradient-card: linear-gradient(160deg, #16161f 0%, #1a1a2e 100%);
+            --shadow-gold: 0 0 30px #f7931a30, 0 0 60px #f7931a15;
+            --shadow-card: 0 4px 24px #00000040;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --radius-lg: 20px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --whatsapp-green: #25D366;
+            --whatsapp-green-hover: #1da851;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: var(--font); background: var(--bg-primary); color: var(--text-primary); overflow-x: hidden; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+        /* ---------- ANIMATED BACKGROUND ---------- */
+        #particles-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+
+        /* ---------- NAVIGATION ---------- */
+        .navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 16px 40px; display: flex; align-items: center; justify-content: space-between; transition: var(--transition); background: transparent; }
+        .navbar.scrolled { background: #0a0a0ff0; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 12px 40px; box-shadow: 0 4px 30px #00000050; }
+        .nav-logo { display: flex; align-items: center; gap: 10px; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; color: #fff; text-decoration: none; z-index: 1001; }
+        .nav-logo .logo-icon { width: 42px; height: 42px; border-radius: 50%; background: var(--gradient-1); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; animation: logoPulse 2s ease-in-out infinite; box-shadow: var(--shadow-gold); }
+        @keyframes logoPulse { 0%, 100% { box-shadow: 0 0 20px #f7931a40; } 50% { box-shadow: 0 0 40px #f7931a70, 0 0 70px #f7931a30; } }
+        .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-weight: 500; font-size: 0.95rem; transition: var(--transition); position: relative; }
+        .nav-links a:hover { color: #fff; }
+        .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: var(--gradient-1); transition: var(--transition); border-radius: 2px; }
+        .nav-links a:hover::after { width: 100%; }
+        .nav-btns { display: flex; gap: 12px; z-index: 1001; }
+        .btn { padding: 11px 24px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: var(--transition); border: none; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; letter-spacing: 0.3px; position: relative; overflow: hidden; }
+        .btn-outline { background: transparent; border: 2px solid var(--border); color: #fff; }
+        .btn-outline:hover { border-color: var(--gold); box-shadow: 0 0 20px #f7931a25; }
+        .btn-gold { background: var(--gradient-1); color: #0a0a0f; font-weight: 700; box-shadow: 0 4px 20px #f7931a35; }
+        .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 35px #f7931a50; }
+        .btn-gold:active { transform: translateY(0); }
+        .mobile-menu-btn { display: none; background: none; border: none; color: #fff; font-size: 1.8rem; cursor: pointer; z-index: 1001; }
+
+        /* ---------- FLOATING WHATSAPP BUTTON ---------- */
+        .whatsapp-float { position: fixed; bottom: 28px; right: 28px; width: 62px; height: 62px; background: var(--whatsapp-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 1999; box-shadow: 0 8px 24px rgba(37,211,102,0.45); cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; animation: floatWApp 2.5s ease-in-out infinite; text-decoration: none; }
+        .whatsapp-float:hover { transform: scale(1.12); box-shadow: 0 12px 32px rgba(37,211,102,0.7); background: var(--whatsapp-green-hover); }
+        .whatsapp-float svg { width: 32px; height: 32px; fill: #fff; }
+        @keyframes floatWApp { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+        /* ---------- HERO SECTION ---------- */
+        .hero { position: relative; z-index: 1; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 120px 40px 80px; text-align: center; }
+        .hero-content { max-width: 750px; }
+        .hero-badge { display: inline-block; padding: 8px 18px; border-radius: 50px; background: #f7931a15; border: 1px solid #f7931a30; color: var(--gold-light); font-size: 0.85rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 24px; animation: fadeInUp 0.8s ease-out; }
+        .hero h1 { font-size: 3.8rem; font-weight: 900; line-height: 1.15; letter-spacing: -1.5px; margin-bottom: 20px; animation: fadeInUp 0.8s ease-out 0.15s both; }
+        .hero h1 .gold-text { background: var(--gradient-1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero p { font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 36px; animation: fadeInUp 0.8s ease-out 0.3s both; max-width: 550px; margin-left: auto; margin-right: auto; }
+        .hero-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; animation: fadeInUp 0.8s ease-out 0.45s both; }
+        .hero-stats { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; margin-top: 60px; animation: fadeInUp 0.8s ease-out 0.6s both; }
+        .hero-stat { text-align: center; }
+        .hero-stat .stat-value { font-size: 2.4rem; font-weight: 800; background: var(--gradient-1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero-stat .stat-label { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ----- NEW: Limited Time Offer Badge (animated) ----- */
+        .offer-tag {
+            position: absolute;
+            top: 100px;
+            right: 20px;
+            background: var(--gradient-1);
+            color: #0a0a0f;
+            font-weight: 800;
+            font-size: 1.2rem;
+            padding: 12px 24px;
+            border-radius: 50px;
+            box-shadow: 0 0 40px #f7931a80;
+            animation: pulseOffer 2s infinite;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        @keyframes pulseOffer {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 40px #f7931a80; }
+            50% { transform: scale(1.05); box-shadow: 0 0 60px #f7931aa0; }
+        }
+
+        .floating-bitcoin { position: absolute; font-size: 3rem; animation: floatBTC 6s ease-in-out infinite; opacity: 0.6; pointer-events: none; z-index: 0; }
+        .floating-bitcoin:nth-child(1) { top: 12%; left: 6%; animation-delay: 0s; font-size: 2.5rem; }
+        .floating-bitcoin:nth-child(2) { top: 18%; right: 8%; animation-delay: 2s; font-size: 3.5rem; }
+        .floating-bitcoin:nth-child(3) { bottom: 22%; left: 10%; animation-delay: 4s; font-size: 2rem; }
+        .floating-bitcoin:nth-child(4) { bottom: 18%; right: 6%; animation-delay: 1s; font-size: 4rem; }
+        .floating-bitcoin:nth-child(5) { top: 45%; left: 50%; animation-delay: 3s; font-size: 2.8rem; }
+        @keyframes floatBTC { 0%, 100% { transform: translateY(0) rotate(0deg); } 25% { transform: translateY(-30px) rotate(5deg); } 50% { transform: translateY(-15px) rotate(-3deg); } 75% { transform: translateY(-40px) rotate(2deg); } }
+
+        /* ---------- TICKER ---------- */
+        .ticker-bar { position: relative; z-index: 2; background: var(--bg-secondary); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 12px 0; overflow: hidden; white-space: nowrap; }
+        .ticker-track { display: inline-flex; gap: 50px; animation: tickerScroll 30s linear infinite; }
+        .ticker-item { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.9rem; color: var(--text-secondary); }
+        .ticker-item .up { color: var(--green); }
+        .ticker-price { color: #fff; font-weight: 700; }
+        @keyframes tickerScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+        /* ---------- SECTIONS ---------- */
+        .section { position: relative; z-index: 1; padding: 80px 40px; max-width: 1200px; margin: 0 auto; }
+        .section-header { text-align: center; margin-bottom: 50px; }
+        .section-badge { display: inline-block; padding: 6px 16px; border-radius: 50px; background: #f7931a12; border: 1px solid #f7931a25; color: var(--gold-light); font-size: 0.8rem; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 16px; }
+        .section-header h2 { font-size: 2.6rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 12px; }
+        .section-header p { color: var(--text-secondary); font-size: 1.05rem; max-width: 500px; margin: 0 auto; }
+
+        /* ---------- MINING PLANS ---------- */
+        .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 24px; }
+        .plan-card { background: var(--gradient-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px 28px; text-align: center; transition: var(--transition); position: relative; overflow: hidden; cursor: pointer; }
+        .plan-card:hover { border-color: var(--border-glow); box-shadow: var(--shadow-gold); transform: translateY(-6px); }
+        .plan-card.featured { border-color: #f7931a50; box-shadow: var(--shadow-gold); }
+        .plan-card.featured::before { content: 'POPULAR'; position: absolute; top: 16px; right: -28px; background: var(--gradient-1); color: #0a0a0f; font-size: 0.7rem; font-weight: 800; padding: 5px 35px; transform: rotate(45deg); letter-spacing: 1px; }
+        .plan-icon { font-size: 3rem; margin-bottom: 16px; }
+        .plan-card h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; }
+        .plan-duration { display: inline-block; padding: 5px 14px; border-radius: 50px; background: #f7931a15; color: var(--gold-light); font-weight: 600; font-size: 0.85rem; margin-bottom: 16px; }
+        .plan-multiplier { font-size: 3rem; font-weight: 900; background: var(--gradient-1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 12px 0; }
+        .plan-range { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px; }
+        .plan-return { color: var(--green); font-weight: 700; font-size: 1rem; margin-bottom: 20px; }
+        .plan-card .btn { width: 100%; justify-content: center; }
+
+        /* ---------- TESTIMONIALS ---------- */
+        .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; }
+        .testimonial-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; transition: var(--transition); }
+        .testimonial-card:hover { border-color: #f7931a25; box-shadow: 0 0 25px #f7931a10; }
+        .testimonial-stars { color: var(--accent); font-size: 1.1rem; margin-bottom: 14px; }
+        .testimonial-text { color: var(--text-secondary); font-style: italic; margin-bottom: 18px; line-height: 1.7; font-size: 0.95rem; }
+        .testimonial-author { display: flex; align-items: center; gap: 12px; }
+        .testimonial-avatar {
+            width: 44px; height: 44px; border-radius: 50%;
+            background: var(--gradient-1);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 1.5rem; color: #0a0a0f;
+            /* New: use happy emoji instead of initials */
+        }
+        .testimonial-name { font-weight: 700; font-size: 0.95rem; }
+        .testimonial-role { color: var(--text-muted); font-size: 0.8rem; }
+        .testimonial-amount { color: var(--green); font-weight: 700; font-size: 0.85rem; }
+
+        /* ---------- ABOUT SECTION ---------- */
+        .about-content { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; }
+        .about-text h3 { font-size: 2rem; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.5px; }
+        .about-text p { color: var(--text-secondary); margin-bottom: 20px; line-height: 1.7; }
+        .about-features { list-style: none; display: grid; gap: 12px; }
+        .about-features li { display: flex; align-items: center; gap: 10px; color: var(--text-secondary); }
+        .about-features li .check-icon { color: var(--green); font-weight: 700; font-size: 1.2rem; }
+        .about-image { display: flex; align-items: center; justify-content: center; font-size: 10rem; animation: floatBTC 5s ease-in-out infinite; }
+
+        /* ---------- CONTACT MODAL ---------- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #00000080; z-index: 2000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; backdrop-filter: blur(4px); }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 36px 30px; max-width: 480px; width: 90%; position: relative; box-shadow: 0 20px 60px #00000070; transform: translateY(20px); transition: transform 0.3s ease; }
+        .modal-overlay.active .modal { transform: translateY(0); }
+        .modal-close { position: absolute; top: 14px; right: 18px; background: none; border: none; color: var(--text-muted); font-size: 1.6rem; cursor: pointer; transition: var(--transition); }
+        .modal-close:hover { color: #fff; }
+        .modal h3 { font-size: 1.6rem; font-weight: 700; margin-bottom: 8px; }
+        .modal p { color: var(--text-secondary); margin-bottom: 22px; font-size: 0.9rem; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px; color: var(--text-primary); }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-secondary); color: #fff; font-family: var(--font); font-size: 0.95rem; transition: var(--transition); resize: vertical; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 15px #f7931a20; }
+        .form-group textarea { min-height: 100px; }
+        .modal-send-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+        .btn-send-email { background: #1a1a2e; border: 2px solid #4da6ff50; color: #4da6ff; flex: 1; min-width: 140px; justify-content: center; }
+        .btn-send-email:hover { border-color: #4da6ff; box-shadow: 0 0 20px #4da6ff30; background: #4da6ff10; }
+        .btn-send-whatsapp { background: #1a2e1a; border: 2px solid #00d4aa50; color: #00d4aa; flex: 1; min-width: 140px; justify-content: center; }
+        .btn-send-whatsapp:hover { border-color: #00d4aa; box-shadow: 0 0 20px #00d4aa30; background: #00d4aa10; }
+
+        /* ---------- FOOTER ---------- */
+        .footer { position: relative; z-index: 1; background: var(--bg-secondary); border-top: 1px solid var(--border); padding: 40px; text-align: center; }
+        .footer p { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 6px; }
+        .footer a { color: var(--gold-light); text-decoration: none; }
+
+        /* ---------- RESPONSIVE ---------- */
+        @media (max-width: 900px) {
+            .navbar { padding: 14px 20px; }
+            .navbar.scrolled { padding: 10px 20px; }
+            .nav-links { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #0a0a0ff8; flex-direction: column; align-items: center; justify-content: center; gap: 30px; z-index: 1000; backdrop-filter: blur(20px); }
+            .nav-links.open { display: flex; }
+            .nav-links a { font-size: 1.3rem; }
+            .mobile-menu-btn { display: block; }
+            .nav-btns { gap: 8px; }
+            .nav-btns .btn { padding: 9px 16px; font-size: 0.8rem; }
+            .hero h1 { font-size: 2.4rem; }
+            .hero p { font-size: 1rem; }
+            .hero-stats { gap: 20px; }
+            .hero-stat .stat-value { font-size: 1.8rem; }
+            .section { padding: 50px 20px; }
+            .section-header h2 { font-size: 2rem; }
+            .about-content { grid-template-columns: 1fr; gap: 30px; }
+            .about-image { font-size: 6rem; order: -1; }
+            .plans-grid { grid-template-columns: 1fr; }
+            .floating-bitcoin { display: none; }
+            .whatsapp-float { width: 55px; height: 55px; bottom: 20px; right: 20px; }
+            .whatsapp-float svg { width: 28px; height: 28px; }
+            .offer-tag { top: 80px; right: 10px; font-size: 1rem; padding: 8px 16px; }
+        }
+        @media (max-width: 480px) {
+            .hero h1 { font-size: 1.9rem; }
+            .hero-btns { flex-direction: column; align-items: center; }
+            .hero-btns .btn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Particle Background -->
+    <canvas id="particles-canvas"></canvas>
+
+    <!-- Floating Bitcoins -->
+    <div class="floating-bitcoin">₿</div>
+    <div class="floating-bitcoin">₿</div>
+    <div class="floating-bitcoin">₿</div>
+    <div class="floating-bitcoin">₿</div>
+    <div class="floating-bitcoin">₿</div>
+
+    <!-- NEW: Limited Time Offer Badge -->
+    <div class="offer-tag">🔥 Limited Offer · 5x returns on 90‑min plans</div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <a href="#" class="nav-logo">
+            <span class="logo-icon">₿</span> BitVault
+        </a>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#plans">Mining Plans</a></li>
+            <li><a href="#testimonials">Reviews</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#" onclick="openContactModal(); return false;">Contact</a></li>
+        </ul>
+        <div class="nav-btns">
+            <a href="login.html" class="btn btn-outline">Login</a>
+            <a href="register.html" class="btn btn-gold">Register</a>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menu">☰</button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <span class="hero-badge">⚡ Trusted Mining Platform</span>
+            <h1>Multiply Your <span class="gold-text">Bitcoin</span> Through Mining</h1>
+            <p>Start mining with our cutting‑edge ASIC farms and watch your capital <strong>triple in just 45 minutes</strong>. Secure, automated, and fully transparent.</p>
+            <div class="hero-btns">
+                <a href="register.html" class="btn btn-gold" style="padding: 15px 36px; font-size: 1rem;">Start Mining Now ⛏️</a>
+                <a href="#plans" class="btn btn-outline" style="padding: 15px 36px; font-size: 1rem;">View Mining Plans 📊</a>
+            </div>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="stat-value" data-count="51280">0</div>
+                    <div class="stat-label">Active Miners</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="stat-value" data-count="4.1">0</div>
+                    <div class="stat-label">BTC Mined Daily</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="stat-value" data-count="213600000">0</div>
+                    <div class="stat-label">Total Paid Out (USD)</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="stat-value" data-count="99.9">0</div>
+                    <div class="stat-label">% Uptime</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ticker Bar -->
+    <div class="ticker-bar">
+        <div class="ticker-track" id="tickerTrack">
+            <span class="ticker-item">₿ BTC <span class="ticker-price">$68,420</span> <span class="up">▲ 2.6%</span></span>
+            <span class="ticker-item">⛏️ Hashrate <span class="ticker-price">523 EH/s</span> <span class="up">▲ 4.8%</span></span>
+            <span class="ticker-item">💰 Miners Online <span class="ticker-price">51,280</span></span>
+            <span class="ticker-item">₿ BTC <span class="ticker-price">$68,420</span> <span class="up">▲ 2.6%</span></span>
+            <span class="ticker-item">⛏️ Hashrate <span class="ticker-price">523 EH/s</span> <span class="up">▲ 4.8%</span></span>
+            <span class="ticker-item">💰 Miners Online <span class="ticker-price">51,280</span></span>
+        </div>
+    </div>
+
+    <!-- Mining Plans Section -->
+    <section class="section" id="plans">
+        <div class="section-header">
+            <span class="section-badge">Mining Plans</span>
+            <h2>Choose Your Mining Power</h2>
+            <p>Select a mining plan that fits your goals. All returns are guaranteed and processed automatically.</p>
+        </div>
+        <div class="plans-grid">
+            <div class="plan-card featured">
+                <div class="plan-icon">⚡</div>
+                <h3>Starter Miner</h3>
+                <span class="plan-duration">⏱️ 45 Minutes</span>
+                <div class="plan-multiplier">3x</div>
+                <p class="plan-range">$500 – $9,000</p>
+                <p class="plan-return">✅ 300% Return Guaranteed</p>
+                <a href="register.html" class="btn btn-gold">Start Mining</a>
+            </div>
+            <div class="plan-card">
+                <div class="plan-icon">🔥</div>
+                <h3>Advanced Miner</h3>
+                <span class="plan-duration">⏱️ 45 Minutes</span>
+                <div class="plan-multiplier">3x</div>
+                <p class="plan-range">$9,001 – $50,000</p>
+                <p class="plan-return">✅ 300% Return Guaranteed</p>
+                <a href="register.html" class="btn btn-gold">Start Mining</a>
+            </div>
+            <div class="plan-card">
+                <div class="plan-icon">💎</div>
+                <h3>Professional Miner</h3>
+                <span class="plan-duration">⏱️ 90 Minutes</span>
+                <div class="plan-multiplier">5x</div>
+                <p class="plan-range">$10,000 – $100,000</p>
+                <p class="plan-return">✅ 500% Return Guaranteed</p>
+                <a href="register.html" class="btn btn-gold">Start Mining</a>
+            </div>
+            <div class="plan-card">
+                <div class="plan-icon">👑</div>
+                <h3>Whale Miner</h3>
+                <span class="plan-duration">⏱️ 90 Minutes</span>
+                <div class="plan-multiplier">5x</div>
+                <p class="plan-range">$100,001 – $900,000</p>
+                <p class="plan-return">✅ 500% Return + VIP Support</p>
+                <a href="register.html" class="btn btn-gold">Start Mining</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials (with happy emoji avatars) -->
+    <section class="section" id="testimonials">
+        <div class="section-header">
+            <span class="section-badge">What Miners Say</span>
+            <h2>Trusted by Thousands Worldwide</h2>
+            <p>Real users share their mining success with BitVault.</p>
+        </div>
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"I started mining with $2,000 and in 45 minutes I had $6,000 ready to withdraw. Instant bank transfer – amazing platform!"</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">😄</div>
+                    <div>
+                        <div class="testimonial-name">James D.</div>
+                        <div class="testimonial-role">Miner from USA</div>
+                        <div class="testimonial-amount">Mined: $6,000</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"Began with $500 just to test, tripled it in 45 minutes. Now I'm mining $10,000 monthly. The 90‑minute plan is a game changer!"</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">😊</div>
+                    <div>
+                        <div class="testimonial-name">Sarah A.</div>
+                        <div class="testimonial-role">Entrepreneur from UK</div>
+                        <div class="testimonial-amount">Mined: $52,000+</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"Was skeptical at first, but the 3x return in 45 minutes is real. Withdrew directly to my crypto wallet. Support is lightning fast!"</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">🥳</div>
+                    <div>
+                        <div class="testimonial-name">Michael K.</div>
+                        <div class="testimonial-role">Trader from Australia</div>
+                        <div class="testimonial-amount">Mined: $28,500</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="section" id="about">
+        <div class="section-header">
+            <span class="section-badge">About Us</span>
+            <h2>Why Choose BitVault?</h2>
+            <p>We combine next‑gen mining hardware with transparent operations.</p>
+        </div>
+        <div class="about-content">
+            <div class="about-text">
+                <h3>Powering the Future of <span class="gold-text">Bitcoin Mining</span></h3>
+                <p>BitVault Mining operates state‑of‑the‑art facilities across three continents. Our ASIC miners run 24/7, delivering consistent returns for every miner. With over 51,000 active rigs and a combined hashrate of 523 EH/s, we provide unmatched performance.</p>
+                <ul class="about-features">
+                    <li><span class="check-icon">✓</span> 99.9% Mining Uptime Guarantee</li>
+                    <li><span class="check-icon">✓</span> Instant Withdrawals to Bank or Wallet</li>
+                    <li><span class="check-icon">✓</span> 3x Output in 45 Minutes</li>
+                    <li><span class="check-icon">✓</span> 24/7 Dedicated Support Team</li>
+                    <li><span class="check-icon">✓</span> SSL Encrypted & Secure Platform</li>
+                </ul>
+            </div>
+            <div class="about-image">⛏️</div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© 2026 <a href="#">BitVault Mining</a>. All rights reserved.</p>
+        <p style="font-size:0.75rem; color: #555;">Mining involves risk. Past performance does not guarantee future results.</p>
+    </footer>
+
+    <!-- Contact Modal -->
+    <div class="modal-overlay" id="contactModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeContactModal()">✕</button>
+            <h3>📩 Contact Support</h3>
+            <p>Fill out the form below and choose how you'd like to send your message.</p>
+            <form id="contactForm" onsubmit="handleContactSubmit(event)">
+                <div class="form-group">
+                    <label for="fullName">Full Name *</label>
+                    <input type="text" id="fullName" placeholder="Enter your full name" required>
+                </div>
+                <div class="form-group">
+                    <label for="emailAddress">Email Address *</label>
+                    <input type="email" id="emailAddress" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="userMessage">Your Message *</label>
+                    <textarea id="userMessage" placeholder="Tell us how we can help you..." required></textarea>
+                </div>
+                <div class="modal-send-btns">
+                    <button type="button" class="btn btn-send-email" onclick="sendByEmail()"> 📧 Send by Email </button>
+                    <button type="button" class="btn btn-send-whatsapp" onclick="sendByWhatsApp()"> 💬 Send by WhatsApp </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Floating WhatsApp Icon -->
+    <a href="https://wa.me/12568212395?text=Hello%20BitVault%20Support%2C%20I%20need%20assistance." target="_blank" class="whatsapp-float" title="Chat with us on WhatsApp">
+        <svg viewBox="0 0 24 24" width="32" height="32">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
+        </svg>
+    </a>
+
+    <script>
+        (function() {
+            // ---------- PARTICLES BACKGROUND ----------
+            const canvas = document.getElementById('particles-canvas');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            const maxParticles = 80;
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            class Particle {
+                constructor() { this.reset(); }
+                reset() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 2 + 0.5;
+                    this.speedX = (Math.random() - 0.5) * 0.4;
+                    this.speedY = (Math.random() - 0.5) * 0.4;
+                    this.opacity = Math.random() * 0.6 + 0.1;
+                    this.fadeSpeed = Math.random() * 0.005 + 0.002;
+                    this.fadingIn = Math.random() > 0.5;
+                }
+                update() {
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    if (this.fadingIn) {
+                        this.opacity += this.fadeSpeed;
+                        if (this.opacity >= 0.7) this.fadingIn = false;
+                    } else {
+                        this.opacity -= this.fadeSpeed;
+                        if (this.opacity <= 0.1) this.fadingIn = true;
+                    }
+                    if (this.x < -10 || this.x > canvas.width + 10 || this.y < -10 || this.y > canvas.height + 10) {
+                        this.reset();
+                    }
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(247,147,26,${this.opacity})`;
+                    ctx.fill();
+                }
+            }
+
+            for (let i = 0; i < maxParticles; i++) { particles.push(new Particle()); }
+
+            function animateParticles() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => { p.update(); p.draw(); });
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < 120) {
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.strokeStyle = `rgba(247,147,26,${0.08 * (1 - dist / 120)})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.stroke();
+                        }
+                    }
+                }
+                requestAnimationFrame(animateParticles);
+            }
+            animateParticles();
+
+            // ---------- NAVBAR SCROLL ----------
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 60) { navbar.classList.add('scrolled'); }
+                else { navbar.classList.remove('scrolled'); }
+            });
+
+            // ---------- MOBILE MENU ----------
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const navLinks = document.getElementById('navLinks');
+            mobileMenuBtn.addEventListener('click', () => {
+                navLinks.classList.toggle('open');
+                mobileMenuBtn.textContent = navLinks.classList.contains('open') ? '✕' : '☰';
+            });
+            navLinks.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    navLinks.classList.remove('open');
+                    mobileMenuBtn.textContent = '☰';
+                });
+            });
+
+            // ---------- COUNTER ANIMATION ----------
+            function animateCounters() {
+                const statValues = document.querySelectorAll('.stat-value[data-count]');
+                statValues.forEach(el => {
+                    const target = parseFloat(el.getAttribute('data-count'));
+                    const isDecimal = target % 1 !== 0;
+                    const duration = 2000;
+                    const startTime = performance.now();
+                    function update(currentTime) {
+                        const elapsed = currentTime - startTime;
+                        const progress = Math.min(elapsed / duration, 1);
+                        const eased = 1 - Math.pow(1 - progress, 3);
+                        const current = target * eased;
+                        if (isDecimal) { el.textContent = current.toFixed(1); }
+                        else if (target >= 1000000) { el.textContent = '$' + Math.floor(current).toLocaleString(); }
+                        else { el.textContent = Math.floor(current).toLocaleString(); }
+                        if (progress < 1) { requestAnimationFrame(update); }
+                        else {
+                            if (isDecimal) el.textContent = target.toFixed(1);
+                            else if (target >= 1000000) el.textContent = '$' + Math.floor(target).toLocaleString();
+                            else el.textContent = Math.floor(target).toLocaleString();
+                        }
+                    }
+                    requestAnimationFrame(update);
+                });
+            }
+
+            const heroStats = document.querySelector('.hero-stats');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => { if (entry.isIntersecting) { animateCounters(); observer.unobserve(entry.target); } });
+            }, { threshold: 0.5 });
+            if (heroStats) observer.observe(heroStats);
+
+            // ---------- CONTACT MODAL ----------
+            window.openContactModal = function() {
+                document.getElementById('contactModal').classList.add('active');
+                document.body.style.overflow = 'hidden';
+            };
+            window.closeContactModal = function() {
+                document.getElementById('contactModal').classList.remove('active');
+                document.body.style.overflow = '';
+            };
+            document.getElementById('contactModal').addEventListener('click', function(e) {
+                if (e.target === this) closeContactModal();
+            });
+            document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeContactModal(); });
+
+            function getContactData() {
+                const fullName = document.getElementById('fullName').value.trim();
+                const emailAddress = document.getElementById('emailAddress').value.trim();
+                const userMessage = document.getElementById('userMessage').value.trim();
+                return { fullName, emailAddress, userMessage };
+            }
+            function validateContactData(data) {
+                if (!data.fullName || !data.emailAddress || !data.userMessage) {
+                    alert('Please fill out all fields before sending.');
+                    return false;
+                }
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.emailAddress)) {
+                    alert('Please enter a valid email address.');
+                    return false;
+                }
+                return true;
+            }
+            window.sendByEmail = function() {
+                const data = getContactData();
+                if (!validateContactData(data)) return;
+                const subject = encodeURIComponent('BitVault Mining Support - ' + data.fullName);
+                const body = encodeURIComponent(`Full Name: ${data.fullName}\nEmail: ${data.emailAddress}\n\nMessage:\n${data.userMessage}\n\n---\nSent from BitVault Mining Contact Form`);
+                window.open(`mailto:paymentbitcoin91@gmail.com?subject=${subject}&body=${body}`, '_blank');
+                closeContactModal();
+                document.getElementById('contactForm').reset();
+            };
+            window.sendByWhatsApp = function() {
+                const data = getContactData();
+                if (!validateContactData(data)) return;
+                const message = encodeURIComponent(`*BitVault Mining Support Request*\n\n*Full Name:* ${data.fullName}\n*Email:* ${data.emailAddress}\n\n*Message:*\n${data.userMessage}`);
+                window.open(`https://wa.me/12568212395?text=${message}`, '_blank');
+                closeContactModal();
+                document.getElementById('contactForm').reset();
+            };
+            window.handleContactSubmit = function(e) { e.preventDefault(); sendByEmail(); };
+
+            // ---------- SMOOTH SCROLL ----------
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    if (href === '#') return;
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+                });
+            });
+
+            console.log('⛏️ BitVault Mining Platform Ready');
+        })();
+    </script>
+</body>
+</html>

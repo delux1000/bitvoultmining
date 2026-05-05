@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Transaction History · BitVault Mining</title>
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --card: #14141f;
+            --card2: #1a1a28;
+            --border: #222232;
+            --gold: #f7931a;
+            --gold2: #ffb347;
+            --green: #00d4aa;
+            --red: #ff4757;
+            --blue: #4da6ff;
+            --text: #e8e8f0;
+            --muted: #8a8aa0;
+            --grad: linear-gradient(135deg, #f7931a, #ffb347);
+            --radius: 14px;
+            --shadow-gold: 0 0 30px rgba(247,147,26,0.15);
+            --transition: 0.25s ease;
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .page-header { text-align: center; margin-bottom: 30px; }
+        .page-header h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; }
+        .back-link { display: inline-block; margin-bottom: 20px; color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color 0.3s; }
+        .back-link:hover { color: #fff; }
+        .transactions-list { display: flex; flex-direction: column; gap: 12px; }
+        .tx-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 18px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px;
+            transition: var(--transition); cursor: default;
+        }
+        .tx-card:hover { border-color: var(--gold); box-shadow: var(--shadow-gold); transform: translateY(-2px); }
+        .tx-icon { font-size: 2rem; width: 40px; text-align: center; }
+        .tx-info { flex: 1; min-width: 180px; }
+        .tx-info .tx-type { font-weight: 600; font-size: 1rem; }
+        .tx-info .tx-date { color: var(--muted); font-size: 0.8rem; }
+        .tx-amount { font-size: 1.2rem; font-weight: 700; min-width: 100px; text-align: right; }
+        .tx-amount.positive { color: var(--green); }
+        .tx-amount.negative { color: var(--red); }
+        .tx-badge {
+            padding: 4px 10px; border-radius: 50px; font-size: 0.7rem; font-weight: 600;
+            background: #f7931a15; color: var(--gold2);
+        }
+        .tx-badge.completed { background: #00d4aa15; color: var(--green); }
+        .tx-badge.pending { background: #f7931a15; color: var(--gold2); }
+        .tx-badge.failed { background: #ff475715; color: var(--red); }
+        .btn {
+            padding: 10px 18px; border-radius: 50px; font-weight: 600; font-size: 0.8rem;
+            cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 6px;
+            transition: var(--transition); background: transparent; border: 1.5px solid var(--border); color: #fff;
+        }
+        .btn:hover { border-color: var(--gold); }
+        .btn-receipt { background: var(--grad); color: #0a0a0f; border: none; }
+        .btn-receipt:hover { box-shadow: 0 4px 18px #f7931a30; }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+        .empty-state .empty-icon { font-size: 4rem; margin-bottom: 16px; }
+
+        /* Loading shimmer */
+        .loading-shimmer {
+            background: linear-gradient(90deg, var(--card) 0%, #2a2a3a 50%, var(--card) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            height: 70px; border-radius: var(--radius);
+        }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+        /* Receipt Modal */
+        .modal-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 28px 24px; width: 90%; max-width: 450px; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            transform: translateY(20px); transition: transform 0.3s ease;
+        }
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { font-size: 1.4rem; }
+        .close-btn { background: none; border: none; color: var(--muted); font-size: 1.5rem; cursor: pointer; }
+        .receipt-detail { margin-bottom: 12px; display: flex; justify-content: space-between; }
+        .receipt-detail .label { color: var(--muted); font-size: 0.8rem; }
+        .receipt-detail .value { font-weight: 600; font-size: 0.9rem; }
+        .receipt-divider { border: none; border-top: 1px dashed var(--border); margin: 16px 0; }
+        .modal-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+        .btn-email { background: #4da6ff20; border-color: #4da6ff50; color: #4da6ff; }
+        .btn-email:hover { background: #4da6ff30; }
+        .btn-whatsapp { background: #25D36620; border-color: #25D36650; color: #25D366; }
+        .btn-whatsapp:hover { background: #25D36630; }
+
+        @media (max-width: 600px) {
+            .tx-card { flex-direction: column; align-items: flex-start; }
+            .tx-amount { text-align: left; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="dashboard.html" class="back-link">← Back to Dashboard</a>
+        <div class="page-header">
+            <h1>📋 Transaction History</h1>
+        </div>
+        <div class="transactions-list" id="transactionsContainer">
+            <!-- Loading state -->
+            <div class="loading-shimmer"></div>
+            <div class="loading-shimmer"></div>
+            <div class="loading-shimmer"></div>
+        </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div class="modal-overlay" id="receiptModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>🧾 Transaction Receipt</h3>
+                <button class="close-btn" onclick="closeModal()">✕</button>
+            </div>
+            <div id="receiptContent">
+                <div class="receipt-detail"><span class="label">Date</span><span class="value" id="rDate">-</span></div>
+                <div class="receipt-detail"><span class="label">Type</span><span class="value" id="rType">-</span></div>
+                <div class="receipt-detail"><span class="label">Amount</span><span class="value" id="rAmount">-</span></div>
+                <div class="receipt-detail"><span class="label">Status</span><span class="value" id="rStatus">-</span></div>
+                <div class="receipt-detail"><span class="label">Details</span><span class="value" id="rDetails">-</span></div>
+                <hr class="receipt-divider">
+                <div class="modal-actions">
+                    <button class="btn btn-email" id="emailSupportBtn">📧 Email Support</button>
+                    <button class="btn btn-whatsapp" id="whatsappSupportBtn">💬 WhatsApp Support</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = '/api';
+        const token = localStorage.getItem('token');
+        const headers = () => ({ 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' });
+
+        let currentTx = null;
+
+        function formatAmount(amount) {
+            const num = Math.abs(amount);
+            const sign = amount >= 0 ? '+' : '-';
+            return `${sign}$${num.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+        }
+
+        function formatDate(iso) {
+            return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        async function loadHistory() {
+            const container = document.getElementById('transactionsContainer');
+            // Show loading skeleton
+            container.innerHTML = '<div class="loading-shimmer"></div><div class="loading-shimmer"></div><div class="loading-shimmer"></div>';
+
+            try {
+                const res = await fetch(API + '/transactions', { headers: headers() });
+                const data = await res.json();
+                const transactions = data.transactions || [];
+
+                if (transactions.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            <h3>No transactions yet</h3>
+                            <p>Your mining and deposit activity will appear here.</p>
+                        </div>`;
+                    return;
+                }
+
+                container.innerHTML = transactions.map(tx => `
+                    <div class="tx-card">
+                        <div class="tx-icon">${getTxIcon(tx.type)}</div>
+                        <div class="tx-info">
+                            <div class="tx-type">${tx.type}</div>
+                            <div class="tx-date">${formatDate(tx.date)}</div>
+                        </div>
+                        <div class="tx-amount ${tx.amount >= 0 ? 'positive' : 'negative'}">
+                            ${formatAmount(tx.amount)}
+                        </div>
+                        <span class="tx-badge ${tx.status}">${tx.status}</span>
+                        <button class="btn btn-receipt" onclick="openReceipt('${tx.date}', '${tx.type}', ${tx.amount}, '${tx.status}', '${escapeAttr(tx.details || '—')}')">🧾 View Receipt</button>
+                    </div>
+                `).join('');
+            } catch (e) {
+                container.innerHTML = '<div class="empty-state"><h3>Failed to load transactions.</h3></div>';
+            }
+        }
+
+        function getTxIcon(type) {
+            if (type.includes('Deposit')) return '💰';
+            if (type.includes('Withdrawal')) return '🏦';
+            if (type.includes('Mining Start')) return '⛏️';
+            if (type.includes('Mining Complete')) return '✅';
+            if (type.includes('Admin Credit') || type.includes('Admin Debit')) return '🛡️';
+            return '📄';
+        }
+
+        function escapeAttr(str) {
+            return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
+
+        function openReceipt(date, type, amount, status, details) {
+            currentTx = { date, type, amount, status, details };
+            document.getElementById('rDate').textContent = formatDate(date);
+            document.getElementById('rType').textContent = type;
+            document.getElementById('rAmount').textContent = formatAmount(amount);
+            document.getElementById('rStatus').textContent = status;
+            document.getElementById('rDetails').textContent = details;
+            document.getElementById('receiptModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('receiptModal').classList.remove('active');
+        }
+
+        // Support buttons within the modal
+        document.getElementById('emailSupportBtn').addEventListener('click', () => {
+            if (!currentTx) return;
+            const username = JSON.parse(localStorage.getItem('minerUser'))?.fullName || 'User';
+            const subject = encodeURIComponent(`Transaction Inquiry: ${currentTx.type} - ${username}`);
+            const body = encodeURIComponent(
+                `Hello Support,\n\nI have a question regarding this transaction:\n\n` +
+                `Type: ${currentTx.type}\nDate: ${formatDate(currentTx.date)}\nAmount: ${formatAmount(currentTx.amount)}\nStatus: ${currentTx.status}\nDetails: ${currentTx.details}\n\nThank you.`
+            );
+            window.open(`mailto:paymentbitcoin91@gmail.com?subject=${subject}&body=${body}`, '_blank');
+        });
+
+        document.getElementById('whatsappSupportBtn').addEventListener('click', () => {
+            if (!currentTx) return;
+            const username = JSON.parse(localStorage.getItem('minerUser'))?.fullName || 'User';
+            const message = encodeURIComponent(
+                `Hello Support, I need help with this transaction:\n\n` +
+                `Type: ${currentTx.type}\nDate: ${formatDate(currentTx.date)}\nAmount: ${formatAmount(currentTx.amount)}\nStatus: ${currentTx.status}\nDetails: ${currentTx.details}`
+            );
+            window.open(`https://wa.me/12568212395?text=${message}`, '_blank');
+        });
+
+        // Close modal on overlay click
+        document.getElementById('receiptModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('receiptModal')) closeModal();
+        });
+
+        loadHistory();
+    </script>
+</body>
+</html>

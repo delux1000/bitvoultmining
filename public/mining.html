@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Start Mining · BitVault Mining</title>
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --bg2: #0e0e16;
+            --card: #14141f;
+            --border: #222232;
+            --gold: #f7931a;
+            --gold2: #ffb347;
+            --green: #00d4aa;
+            --red: #ff4757;
+            --blue: #4da6ff;
+            --text: #e8e8f0;
+            --muted: #8a8aa0;
+            --grad: linear-gradient(135deg, #f7931a, #ffb347);
+            --radius: 14px;
+            --shadow-gold: 0 0 30px rgba(247,147,26,0.15);
+            --transition: 0.25s ease;
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: var(--font); background: var(--bg); color: var(--text); min-height:100vh; overflow-x:hidden; }
+        .container { max-width:1200px; margin:0 auto; padding:20px; }
+
+        /* Live Ticker */
+        .live-ticker {
+            background: var(--card); border:1px solid var(--border); border-radius:var(--radius);
+            padding:12px 20px; display:flex; align-items:center; gap:20px; flex-wrap:wrap;
+            margin-bottom:24px; animation: fadeInDown 0.6s ease;
+        }
+        @keyframes fadeInDown {
+            from { opacity:0; transform:translateY(-10px); }
+            to { opacity:1; transform:translateY(0); }
+        }
+        .ticker-item { display:flex; align-items:center; gap:8px; font-size:0.9rem; }
+        .ticker-item .price { font-weight:700; color:var(--gold); }
+        .ticker-item .change.up { color:var(--green); }
+        .ticker-item .change.down { color:var(--red); }
+
+        /* Page Header */
+        .page-header { text-align:center; margin-bottom:30px; }
+        .page-header h1 { font-size:2.2rem; font-weight:800; letter-spacing:-1px; margin-bottom:8px; }
+        .page-header p { color:var(--muted); }
+        .balance-badge {
+            display:inline-block; background:var(--card); border:1px solid var(--border);
+            border-radius:50px; padding:10px 24px; margin-top:12px;
+            font-weight:600; font-size:1rem;
+        }
+        .balance-badge span { color:var(--gold2); margin-left:6px; }
+
+        /* Plan Cards */
+        .plans-grid {
+            display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr));
+            gap:18px; margin-bottom:30px;
+        }
+        .plan-card {
+            background:var(--card); border:2px solid var(--border); border-radius:var(--radius);
+            padding:24px 18px; text-align:center; cursor:pointer; position:relative;
+            transition:all 0.3s ease; overflow:hidden;
+        }
+        .plan-card:hover { border-color:var(--gold); transform:translateY(-4px); box-shadow:var(--shadow-gold); }
+        .plan-card.selected { border-color:var(--gold); background:#f7931a0a; box-shadow:0 0 25px rgba(247,147,26,0.2); }
+        .plan-card .badge-popular {
+            position:absolute; top:12px; right:12px; background:var(--grad); color:#000;
+            font-size:0.7rem; font-weight:700; padding:4px 10px; border-radius:20px;
+        }
+        .plan-icon { font-size:2.5rem; margin-bottom:8px; }
+        .plan-multiplier { font-size:2.2rem; font-weight:800; color:var(--gold); }
+        .plan-duration { color:var(--muted); font-size:0.85rem; margin:6px 0; }
+        .plan-range { font-size:0.8rem; color:var(--muted); }
+        .plan-return { margin-top:10px; color:var(--green); font-weight:600; font-size:0.9rem; }
+
+        /* Mining Rig Animation */
+        .rig-animation {
+            display:flex; justify-content:center; gap:40px; margin-bottom:30px;
+            flex-wrap:wrap; animation: fadeIn 1s ease;
+        }
+        .machine {
+            text-align:center; position:relative;
+        }
+        .machine-icon {
+            font-size:4rem; animation: pulseMachine 2s ease-in-out infinite;
+        }
+        .machine:nth-child(2) .machine-icon { animation-delay:0.5s; }
+        .machine:nth-child(3) .machine-icon { animation-delay:1s; }
+        @keyframes pulseMachine {
+            0%,100% { transform:scale(1); opacity:0.9; }
+            50% { transform:scale(1.05); opacity:1; }
+        }
+        .machine-label { color:var(--muted); font-size:0.8rem; margin-top:4px; }
+
+        /* Form */
+        .form-card {
+            background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+            padding:28px 24px; margin-bottom:30px; max-width:600px; margin-left:auto; margin-right:auto;
+        }
+        .form-group { margin-bottom:18px; }
+        label { display:block; font-weight:600; margin-bottom:6px; font-size:0.85rem; }
+        input { width:100%; padding:14px 16px; border-radius:10px; background:#0a0a12; border:1px solid var(--border); color:#fff; font-size:1rem; }
+        .btn { width:100%; padding:16px; border-radius:50px; background:var(--grad); color:#0a0a0f; font-weight:700; font-size:1rem; border:none; cursor:pointer; transition:0.3s; margin-top:12px; }
+        .btn:hover { transform:translateY(-2px); box-shadow:0 8px 30px #f7931a40; }
+
+        /* Testimonials */
+        .testimonials { margin-bottom:40px; }
+        .section-title { font-size:1.4rem; font-weight:700; margin-bottom:16px; }
+        .testimonial-grid {
+            display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr));
+            gap:16px;
+        }
+        .testimonial-card {
+            background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+            padding:20px; transition:0.3s;
+        }
+        .testimonial-card:hover { border-color:var(--gold); }
+        .testimonial-header { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+        .avatar { width:40px; height:40px; border-radius:50%; background:var(--grad); display:flex; align-items:center; justify-content:center; font-weight:700; color:#000; }
+        .name-loc .name { font-weight:600; font-size:0.9rem; }
+        .name-loc .loc { font-size:0.75rem; color:var(--muted); }
+        .stars { color:var(--gold); margin-bottom:6px; }
+        .testimonial-text { color:var(--muted); font-size:0.85rem; line-height:1.5; }
+
+        .back-link { text-align:center; margin:20px 0; }
+        .back-link a { color:var(--muted); text-decoration:none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Live Ticker -->
+        <div class="live-ticker" id="liveTicker">
+            <div class="ticker-item">₿ Bitcoin <span class="price" id="btcPrice">$68,420</span> <span class="change up" id="btcChange">▲2.4%</span></div>
+            <div class="ticker-item">⛏️ Network Hashrate <span class="price">512 EH/s</span></div>
+            <div class="ticker-item">⚡ Block Reward <span class="price">6.25 BTC</span></div>
+        </div>
+
+        <!-- Header -->
+        <div class="page-header">
+            <h1>⛏️ Start Mining</h1>
+            <p>Select a plan and let our ASIC miners work for you</p>
+            <div class="balance-badge" id="balanceBadge">Available: <span>$0.00</span></div>
+        </div>
+
+        <!-- Mining Machines Animation -->
+        <div class="rig-animation">
+            <div class="machine"><div class="machine-icon">🖥️</div><div class="machine-label">Antminer S21</div></div>
+            <div class="machine"><div class="machine-icon">⛏️</div><div class="machine-label">Whatsminer M60</div></div>
+            <div class="machine"><div class="machine-icon">⚡</div><div class="machine-label">Avalon A15</div></div>
+        </div>
+
+        <!-- Plans Grid -->
+        <div class="plans-grid" id="plansGrid">
+            <!-- Dynamically generated -->
+        </div>
+
+        <!-- Investment Form -->
+        <div class="form-card">
+            <h2 style="text-align:center; margin-bottom:16px;">Enter Investment Amount</h2>
+            <div class="form-group">
+                <label>Amount (USD)</label>
+                <input type="number" id="amount" placeholder="Minimum $200" min="200" required>
+            </div>
+            <button class="btn" id="startMiningBtn">🚀 Start Mining Now</button>
+            <p style="text-align:center; margin-top:10px; font-size:0.8rem; color:var(--muted);">Funds will be deducted from your Available Balance</p>
+        </div>
+
+        <!-- Testimonials -->
+        <div class="testimonials">
+            <div class="section-title">💬 What Miners Say</div>
+            <div class="testimonial-grid" id="testimonialGrid"></div>
+        </div>
+
+        <div class="back-link"><a href="dashboard.html">← Back to Dashboard</a></div>
+    </div>
+
+    <script>
+        const API = '/api';
+        const token = localStorage.getItem('token');
+        const headers = () => ({ 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' });
+
+        // Live price simulation (fetch real if wanted)
+        async function updateTicker() {
+            try {
+                const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');
+                const data = await res.json();
+                const price = data.bitcoin.usd;
+                const change = data.bitcoin.usd_24h_change.toFixed(2);
+                document.getElementById('btcPrice').textContent = '$' + price.toLocaleString();
+                const changeEl = document.getElementById('btcChange');
+                changeEl.textContent = (change >= 0 ? '▲' : '▼') + Math.abs(change) + '%';
+                changeEl.className = 'change ' + (change >= 0 ? 'up' : 'down');
+            } catch(e) {
+                // Keep static fallback
+            }
+        }
+        updateTicker();
+        setInterval(updateTicker, 60000);
+
+        // Plans definition (server must know these)
+        const plans = [
+            { id: '45min', name: 'Starter Miner', multiplier: 3, duration: '45 min', min: 200, max: 5000, icon: '⚡', popular: false },
+            { id: '90min', name: 'Advanced Miner', multiplier: 5, duration: '90 min', min: 1000, max: 50000, icon: '🔥', popular: true },
+            { id: '120min', name: 'Professional Miner', multiplier: 7, duration: '120 min', min: 5000, max: 200000, icon: '💎', popular: false },
+            { id: '180min', name: 'Whale Miner', multiplier: 10, duration: '180 min', min: 50000, max: 1000000, icon: '👑', popular: false }
+        ];
+
+        let selectedPlan = plans[0];
+
+        function renderPlans() {
+            const grid = document.getElementById('plansGrid');
+            grid.innerHTML = plans.map(p => `
+                <div class="plan-card ${p.id === selectedPlan.id ? 'selected' : ''}" data-plan="${p.id}">
+                    ${p.popular ? '<div class="badge-popular">Popular</div>' : ''}
+                    <div class="plan-icon">${p.icon}</div>
+                    <div class="plan-multiplier">${p.multiplier}x</div>
+                    <div class="plan-duration">${p.duration}</div>
+                    <div class="plan-range">$${p.min.toLocaleString()} – $${p.max.toLocaleString()}</div>
+                    <div class="plan-return">+${((p.multiplier-1)*100)}% return</div>
+                </div>
+            `).join('');
+
+            document.querySelectorAll('.plan-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    selectedPlan = plans.find(p => p.id === card.dataset.plan);
+                    renderPlans();
+                    const amountInput = document.getElementById('amount');
+                    amountInput.placeholder = `Min $${selectedPlan.min.toLocaleString()}`;
+                    amountInput.min = selectedPlan.min;
+                });
+            });
+        }
+
+        async function fetchBalance() {
+            try {
+                const res = await fetch(API + '/user', { headers: headers() });
+                const user = await res.json();
+                const bal = user.availableBalance || 0;
+                document.getElementById('balanceBadge').innerHTML = `Available: <span>$${bal.toLocaleString('en-US', {minimumFractionDigits:2})}</span>`;
+            } catch(e) {}
+        }
+
+        // Testimonials (dynamic generation)
+        function generateTestimonials() {
+            const names = ['James D.', 'Sarah A.', 'Michael K.', 'Emma L.', 'Robert T.', 'Linda M.'];
+            const locs = ['USA', 'UK', 'Germany', 'Australia', 'Canada', 'Nigeria'];
+            const reviews = [
+                'Turned $500 into $1,500 in 45 minutes! Best mining platform ever.',
+                'Started with $2,000 and cashed out $10,000. Smooth and reliable.',
+                'The 7x plan is insane! I\'ve already earned over $50,000.',
+                'Transparent and fast. Withdrew directly to my bank account.',
+                'Trusted mining site. My go-to for passive income.',
+                'I love the live progress tracker. Makes me feel secure.'
+            ];
+            const grid = document.getElementById('testimonialGrid');
+            grid.innerHTML = '';
+            for(let i=0; i<6; i++) {
+                const name = names[i];
+                const loc = locs[i];
+                const review = reviews[i];
+                const initials = name.split(' ').map(n=>n[0]).join('');
+                grid.innerHTML += `
+                    <div class="testimonial-card">
+                        <div class="testimonial-header">
+                            <div class="avatar">${initials}</div>
+                            <div class="name-loc">
+                                <div class="name">${name}</div>
+                                <div class="loc">📍 ${loc}</div>
+                            </div>
+                        </div>
+                        <div class="stars">⭐⭐⭐⭐⭐</div>
+                        <div class="testimonial-text">"${review}"</div>
+                    </div>
+                `;
+            }
+        }
+
+        // Start mining
+        document.getElementById('startMiningBtn').addEventListener('click', async () => {
+            const amount = parseFloat(document.getElementById('amount').value);
+            if (!amount || amount < selectedPlan.min) {
+                alert(`Minimum investment for this plan is $${selectedPlan.min.toLocaleString()}.`);
+                return;
+            }
+            try {
+                const res = await fetch(API + '/mining/start', {
+                    method: 'POST',
+                    headers: headers(),
+                    body: JSON.stringify({ amount, plan: selectedPlan.id })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(`✅ Mining started! Expected return: $${data.expectedReturn.toLocaleString()}`);
+                    window.location.href = 'dashboard.html';
+                } else {
+                    alert(data.message || 'Failed to start mining.');
+                }
+            } catch(e) { alert('Server error.'); }
+        });
+
+        // Init
+        renderPlans();
+        fetchBalance();
+        generateTestimonials();
+    </script>
+</body>
+</html>
