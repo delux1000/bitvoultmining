@@ -13,7 +13,7 @@ const SECRET = 'bitvault_mining_secret_2026';
 const ADMIN_EMAIL = 'paymentbitcoin91@gmail.com';
 const ADMIN_PIN = '338989';
 
-// jsonbin.io
+// jsonbin.io (real keys you provided)
 const JSONBIN_API_KEY = '$2a$10$zz.WHuH5WsITx7v1cWFERO3Ve5JreU.2Wl5B0LB2fEbixpdwCbPi';
 const JSONBIN_BIN_ID = '69fa6c70aaba882197766378';
 const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
@@ -42,28 +42,35 @@ let db = {
 // ── Helpers ─────────────────────────────────────────────
 async function loadDataFromBin() {
   try {
+    console.log('🔄 Fetching bin data...');
     const res = await fetch(`${JSONBIN_URL}/latest`, { headers: { 'X-Access-Key': JSONBIN_API_KEY } });
     if (!res.ok) {
-      console.warn('⚠️ Bin not accessible, starting with empty data');
+      const text = await res.text();
+      console.error(`❌ Bin fetch failed: ${res.status} ${res.statusText}`, text);
       return db;
     }
     const json = await res.json();
+    console.log('✅ Bin data loaded');
     return json.record || db;
   } catch (err) {
-    console.error('Failed to load from bin:', err.message);
+    console.error('❌ loadDataFromBin error:', err.message);
     return db;
   }
 }
 
 async function saveDataToBin() {
   try {
-    await fetch(JSONBIN_URL, {
+    const res = await fetch(JSONBIN_URL, {
       method: 'PUT',
       headers: JSONBIN_HEADERS,
       body: JSON.stringify(db)
     });
+    if (!res.ok) {
+      const text = await res.text();
+      console.error(`❌ Bin save failed: ${res.status} ${res.statusText}`, text);
+    }
   } catch (err) {
-    console.error('Failed to save to bin:', err.message);
+    console.error('❌ saveDataToBin error:', err.message);
   }
 }
 
