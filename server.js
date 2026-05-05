@@ -14,7 +14,7 @@ const ADMIN_EMAIL = 'paymentbitcoin91@gmail.com';
 const ADMIN_PIN = '338989';
 
 // jsonbin.io (real keys you provided)
-const JSONBIN_API_KEY = '$2a$10$zz.WHuH5WsITx7v1cWFERO3Ve5JreU.2Wl5B0LB2fEbixpdwCbPi';
+const JSONBIN_API_KEY = '$2a$10$zz.WHuH5WsITx7v1cWFERO3VCe5JreU.2Wl5B0LB2fEbixpdwCbPi';
 const JSONBIN_BIN_ID = '69fa6c70aaba882197766378';
 const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
 const JSONBIN_HEADERS = {
