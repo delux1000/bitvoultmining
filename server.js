@@ -2,35 +2,35 @@ const express = require('express');
 const multer = require('multer');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 1000;
+
+// ── Hardcoded configuration ────────────────────────────
+const PORT = 1000;
 const SECRET = 'bitvault_mining_secret_2026';
 
-// ---------- Admin credentials (from .env) ----------
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'paymentbitcoin91@gmail.com';
-const ADMIN_PIN = process.env.ADMIN_PIN || '338989';
+// Admin account
+const ADMIN_EMAIL = 'paymentbitcoin91@gmail.com';
+const ADMIN_PIN = '338989';
 
-// ---------- Middleware ----------
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.static('public'));
-
-// ---------- Multer (memory storage) ----------
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
-
-// ---------- jsonbin.io configuration ----------
-const JSONBIN_API_KEY = process.env.JSONBIN_API_KEY;
-const JSONBIN_BIN_ID = process.env.JSONBIN_BIN_ID;
+// jsonbin.io
+const JSONBIN_API_KEY = '$2a$10$zz.WHuH5WsITx7v1cWFERO3Ve5JreU.2Wl5B0LB2fEbixpdwCbPi';
+const JSONBIN_BIN_ID = '69fa6c70aaba882197766378';
 const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
 const JSONBIN_HEADERS = {
   'X-Access-Key': JSONBIN_API_KEY,
   'Content-Type': 'application/json'
 };
 
-// ---------- Global in‑memory data ----------
+// ── Middleware ──────────────────────────────────────────
+app.use(cors());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.static('public'));
+
+// Multer (memory storage – no disk writes)
+const upload = multer({ storage: multer.memoryStorage() });
+
+// ── In‑memory database ──────────────────────────────────
 let db = {
   users: [],
   transactions: [],
@@ -39,18 +39,18 @@ let db = {
   deposits: []
 };
 
-// ---------- Helpers ----------
+// ── Helpers ─────────────────────────────────────────────
 async function loadDataFromBin() {
   try {
     const res = await fetch(`${JSONBIN_URL}/latest`, { headers: { 'X-Access-Key': JSONBIN_API_KEY } });
     if (!res.ok) {
-      console.warn('⚠️ Bin not found or empty, using fresh data');
+      console.warn('⚠️ Bin not accessible, starting with empty data');
       return db;
     }
     const json = await res.json();
-    return json.record;                     // jsonbin.io nests data inside { record: ... }
+    return json.record || db;
   } catch (err) {
-    console.error('Failed to load bin data, using defaults:', err.message);
+    console.error('Failed to load from bin:', err.message);
     return db;
   }
 }
@@ -63,11 +63,23 @@ async function saveDataToBin() {
       body: JSON.stringify(db)
     });
   } catch (err) {
-    console.error('Failed to save data to bin:', err.message);
+    console.error('Failed to save to bin:', err.message);
   }
 }
 
-// ---------- Auth middleware ----------
+function recordTransaction(userId, type, amount, status, details) {
+  db.transactions.push({
+    userId,
+    date: new Date().toISOString(),
+    type,
+    amount,
+    status,
+    details
+  });
+  saveDataToBin();
+}
+
+// ── Auth middleware ─────────────────────────────────────
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -85,19 +97,7 @@ function adminOnly(req, res, next) {
   next();
 }
 
-function recordTransaction(userId, type, amount, status, details) {
-  db.transactions.push({
-    userId,
-    date: new Date().toISOString(),
-    type,
-    amount,
-    status,
-    details
-  });
-  saveDataToBin();
-}
-
-// ---------- Seed admin ----------
+// ── Seed admin account ──────────────────────────────────
 async function seedAdmin() {
   if (!db.users.find(u => u.email === ADMIN_EMAIL)) {
     db.users.push({
@@ -162,7 +162,7 @@ app.post('/api/login', async (req, res) => {
   const { login, pin } = req.body;
   const user = db.users.find(u => (u.email === login || u.phone === login) && u.pin === pin);
   if (!user) return res.json({ success: false, message: 'Invalid credentials.' });
-  if (!user.isActive) return res.json({ success: false, message: 'Account deactivated.' });
+  if (!user.isActive) return res.json({ success: false, message: 'Account is deactivated.' });
   const token = jwt.sign({ id: user.id, email: user.email }, SECRET, { expiresIn: '7d' });
   const { pin: _, ...safeUser } = user;
   res.json({ success: true, token, user: safeUser });
@@ -299,13 +299,11 @@ app.post('/api/plan/upgrade', authenticateToken, (req, res) => startMining(req.u
 app.post('/api/plan/claim/:planId', authenticateToken, async (req, res) => {
   const plan = db.plans.find(p => p.planId === req.params.planId && p.userId === req.user.id);
   if (!plan) return res.json({ success: false, message: 'Plan not found.' });
-  if (!plan.completed) return res.json({ success: false, message: 'Plan not completed yet.' });
+  if (!plan.completed) return res.json({ success: false, message: 'Plan not yet completed.' });
   if (plan.claimed) return res.json({ success: false, message: 'Already claimed.' });
   plan.claimed = true;
   const user = db.users.find(u => u.id === req.user.id);
-  if (user) {
-    user.withdrawableBalance += plan.expectedReturn;
-  }
+  if (user) user.withdrawableBalance += plan.expectedReturn;
   await saveDataToBin();
   recordTransaction(req.user.id, 'Mining Complete', plan.expectedReturn, 'completed', `${plan.planName} | ${plan.multiplier}x`);
   res.json({ success: true, withdrawableBalance: user?.withdrawableBalance });
@@ -332,8 +330,8 @@ app.post('/api/withdraw', authenticateToken, async (req, res) => {
 
 // ===================== TRANSACTIONS =====================
 app.get('/api/transactions', authenticateToken, (req, res) => {
-  const transactions = db.transactions.filter(tx => tx.userId === req.user.id).reverse();
-  res.json({ transactions });
+  const userTx = db.transactions.filter(tx => tx.userId === req.user.id).reverse();
+  res.json({ transactions: userTx });
 });
 
 // ===================== ADMIN ROUTES =====================
@@ -437,12 +435,12 @@ app.get('/withdraw', (req, res) => res.sendFile(path.join(__dirname, 'public', '
 app.get('/profile', (req, res) => res.sendFile(path.join(__dirname, 'public', 'profile.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
-// ---------- Start ----------
+// ── Start ───────────────────────────────────────────────
 async function init() {
   db = await loadDataFromBin();
   await seedAdmin();
   app.listen(PORT, () => {
-    console.log(`⛏️  BitVault server running on http://localhost:${PORT}`);
+    console.log(`⛏️  BitVault server running on port ${PORT}`);
     console.log(`🛡️  Admin panel: http://localhost:${PORT}/admin`);
   });
 }
