@@ -2,7 +2,6 @@ const express = require('express');
 const multer = require('multer');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-const fetch = require('node-fetch');
 require('dotenv').config();
 
 const app = express();
@@ -40,23 +39,22 @@ let db = {
   deposits: []
 };
 
-// ---------- Helper: fetch data from jsonbin.io ----------
+// ---------- Helpers ----------
 async function loadDataFromBin() {
   try {
     const res = await fetch(`${JSONBIN_URL}/latest`, { headers: { 'X-Access-Key': JSONBIN_API_KEY } });
     if (!res.ok) {
-      console.warn('⚠️ Bin not found or empty, starting with fresh data');
+      console.warn('⚠️ Bin not found or empty, using fresh data');
       return db;
     }
     const json = await res.json();
-    return json.record;
+    return json.record;                     // jsonbin.io nests data inside { record: ... }
   } catch (err) {
-    console.error('Failed to load data from bin, using defaults:', err.message);
+    console.error('Failed to load bin data, using defaults:', err.message);
     return db;
   }
 }
 
-// ---------- Helper: save data to jsonbin.io ----------
 async function saveDataToBin() {
   try {
     await fetch(JSONBIN_URL, {
@@ -87,7 +85,6 @@ function adminOnly(req, res, next) {
   next();
 }
 
-// ---------- Helper: record transaction ----------
 function recordTransaction(userId, type, amount, status, details) {
   db.transactions.push({
     userId,
@@ -100,7 +97,7 @@ function recordTransaction(userId, type, amount, status, details) {
   saveDataToBin();
 }
 
-// ---------- Seed admin on first run ----------
+// ---------- Seed admin ----------
 async function seedAdmin() {
   if (!db.users.find(u => u.email === ADMIN_EMAIL)) {
     db.users.push({
@@ -165,7 +162,7 @@ app.post('/api/login', async (req, res) => {
   const { login, pin } = req.body;
   const user = db.users.find(u => (u.email === login || u.phone === login) && u.pin === pin);
   if (!user) return res.json({ success: false, message: 'Invalid credentials.' });
-  if (!user.isActive) return res.json({ success: false, message: 'Account is deactivated.' });
+  if (!user.isActive) return res.json({ success: false, message: 'Account deactivated.' });
   const token = jwt.sign({ id: user.id, email: user.email }, SECRET, { expiresIn: '7d' });
   const { pin: _, ...safeUser } = user;
   res.json({ success: true, token, user: safeUser });
@@ -250,7 +247,7 @@ app.get('/api/deposit/status/:id', authenticateToken, (req, res) => {
   res.json({ success: true, status: deposit.status });
 });
 
-// ===================== MINING ($200 min) =====================
+// ===================== MINING =====================
 function startMining(userId, amount, plan, res) {
   const user = db.users.find(u => u.id === userId);
   if (!user) return res.json({ success: false, message: 'User not found.' });
@@ -266,7 +263,7 @@ function startMining(userId, amount, plan, res) {
   if (!cfg) return res.json({ success: false, message: 'Invalid plan.' });
 
   if (amount < cfg.min || amount > user.availableBalance) {
-    return res.json({ success: false, message: `Insufficient available balance. Minimum $${cfg.min}, available $${user.availableBalance}.` });
+    return res.json({ success: false, message: `Insufficient available balance. Min $${cfg.min}, available $${user.availableBalance}.` });
   }
 
   const expectedReturn = amount * cfg.multiplier;
@@ -284,7 +281,7 @@ function startMining(userId, amount, plan, res) {
     claimed: false
   });
   saveDataToBin();
-  recordTransaction(userId, 'Mining Start', -amount, 'pending', plan + ' plan');
+  recordTransaction(userId, 'Mining Start', -amount, 'pending', `${plan} plan`);
   setTimeout(() => completePlan(planId), cfg.durationMs);
   res.json({ success: true, expectedReturn, planId });
 }
@@ -300,10 +297,9 @@ app.post('/api/mining/start', authenticateToken, (req, res) => startMining(req.u
 app.post('/api/plan/upgrade', authenticateToken, (req, res) => startMining(req.user.id, req.body.amount, req.body.plan, res));
 
 app.post('/api/plan/claim/:planId', authenticateToken, async (req, res) => {
-  const planId = req.params.planId;
-  const plan = db.plans.find(p => p.planId === planId && p.userId === req.user.id);
+  const plan = db.plans.find(p => p.planId === req.params.planId && p.userId === req.user.id);
   if (!plan) return res.json({ success: false, message: 'Plan not found.' });
-  if (!plan.completed) return res.json({ success: false, message: 'Plan not yet completed.' });
+  if (!plan.completed) return res.json({ success: false, message: 'Plan not completed yet.' });
   if (plan.claimed) return res.json({ success: false, message: 'Already claimed.' });
   plan.claimed = true;
   const user = db.users.find(u => u.id === req.user.id);
@@ -311,8 +307,8 @@ app.post('/api/plan/claim/:planId', authenticateToken, async (req, res) => {
     user.withdrawableBalance += plan.expectedReturn;
   }
   await saveDataToBin();
-  recordTransaction(req.user.id, 'Mining Complete', plan.expectedReturn, 'completed', plan.planName + ' | ' + plan.multiplier + 'x');
-  res.json({ success: true, withdrawableBalance: user.withdrawableBalance });
+  recordTransaction(req.user.id, 'Mining Complete', plan.expectedReturn, 'completed', `${plan.planName} | ${plan.multiplier}x`);
+  res.json({ success: true, withdrawableBalance: user?.withdrawableBalance });
 });
 
 app.get('/api/mining/active', authenticateToken, (req, res) => {
@@ -336,15 +332,16 @@ app.post('/api/withdraw', authenticateToken, async (req, res) => {
 
 // ===================== TRANSACTIONS =====================
 app.get('/api/transactions', authenticateToken, (req, res) => {
-  const userTx = db.transactions.filter(tx => tx.userId === req.user.id);
-  res.json({ transactions: userTx.reverse() });
+  const transactions = db.transactions.filter(tx => tx.userId === req.user.id).reverse();
+  res.json({ transactions });
 });
 
 // ===================== ADMIN ROUTES =====================
 app.post('/api/admin/login', (req, res) => {
   const { email, pin } = req.body;
-  if (email !== ADMIN_EMAIL || pin !== ADMIN_PIN)
+  if (email !== ADMIN_EMAIL || pin !== ADMIN_PIN) {
     return res.json({ success: false, message: 'Invalid admin credentials.' });
+  }
   const admin = db.users.find(u => u.email === ADMIN_EMAIL);
   if (!admin) return res.json({ success: false, message: 'Admin not found.' });
   const token = jwt.sign({ id: admin.id, email: admin.email }, SECRET, { expiresIn: '1d' });
@@ -352,8 +349,8 @@ app.post('/api/admin/login', (req, res) => {
 });
 
 app.get('/api/admin/users', authenticateToken, adminOnly, (req, res) => {
-  const users = db.users.map(({ pin, ...rest }) => rest);
-  res.json({ success: true, users });
+  const safeUsers = db.users.map(({ pin, ...rest }) => rest);
+  res.json({ success: true, users: safeUsers });
 });
 
 app.post('/api/admin/credit', authenticateToken, adminOnly, async (req, res) => {
@@ -371,7 +368,7 @@ app.put('/api/admin/user/status', authenticateToken, adminOnly, async (req, res)
   const { userId, isActive } = req.body;
   const user = db.users.find(u => u.id === userId);
   if (!user) return res.json({ success: false, message: 'User not found.' });
-  user.isActive = isActive;
+  user.isActive = !!isActive;
   await saveDataToBin();
   res.json({ success: true });
 });
@@ -440,7 +437,7 @@ app.get('/withdraw', (req, res) => res.sendFile(path.join(__dirname, 'public', '
 app.get('/profile', (req, res) => res.sendFile(path.join(__dirname, 'public', 'profile.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
-// ---------- Start server ----------
+// ---------- Start ----------
 async function init() {
   db = await loadDataFromBin();
   await seedAdmin();
