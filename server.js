@@ -9,8 +9,8 @@ const app = express();
 const PORT = process.env.PORT || 1000;
 const SECRET = 'bitvault_mining_secret_2026';
 
-// jsonbin.io – using the new credentials you provided
-const JSONBIN_API_KEY = '$2a$10$GUq2LJUeEB/YG2Y6tzfllejaUsuj1xeqbS4CYXfmWCwJqIdfc04gG';   // Access key
+// jsonbin.io – using your Access Key & Bin ID
+const JSONBIN_API_KEY = '$2a$10$GUq2LJUeEB/YG2Y6tzfllejaUsuj1xeqbS4CYXfmWCwJqIdfc04gG';
 const JSONBIN_BIN_ID = '69fa771a36566621a82c8cd8';
 const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
 const JSONBIN_HEADERS = {
@@ -59,7 +59,7 @@ async function saveDataToBin() {
       body: JSON.stringify(db)
     });
   } catch (err) {
-    // silently continue – data stays in memory
+    // silently continue
   }
 }
 
@@ -103,6 +103,9 @@ function seedAdmins() {
         withdrawableBalance: 0,
         isAdmin: true,
         isActive: true,
+        referralCount: 0,
+        referralBonusClaimed: false,
+        referredBy: null,
         createdAt: new Date().toISOString()
       });
     }
@@ -113,12 +116,28 @@ function seedAdmins() {
 
 // ===================== USER REGISTRATION & LOGIN =====================
 app.post('/api/register', upload.single('profilePic'), async (req, res) => {
-  const { fullName, phone, email, country, region, city, street, pin, alias } = req.body;
+  const { fullName, phone, email, country, region, city, street, pin, alias, ref } = req.body;
   if (!fullName || !phone || !email || !pin || pin.length !== 6) {
     return res.status(400).json({ success: false, message: 'Missing fields or PIN not 6 digits.' });
   }
   if (db.users.find(u => u.email === email || u.phone === phone)) {
     return res.status(400).json({ success: false, message: 'Email or phone already registered.' });
+  }
+
+  // Handle referral
+  let referredBy = null;
+  if (ref) {
+    const referrer = db.users.find(u => u.id === ref && !u.isAdmin);
+    if (referrer) {
+      referredBy = referrer.id;
+      referrer.referralCount = (referrer.referralCount || 0) + 1;
+      if (referrer.referralCount === 3 && !referrer.referralBonusClaimed) {
+        referrer.withdrawableBalance += 500;
+        referrer.referralBonusClaimed = true;
+        recordTransaction(referrer.id, 'Referral Bonus', 500, 'completed', 'Referred 3 users');
+      }
+      await saveDataToBin();
+    }
   }
 
   let profilePic = null;
@@ -138,6 +157,9 @@ app.post('/api/register', upload.single('profilePic'), async (req, res) => {
     withdrawableBalance: 0,
     isAdmin: false,
     isActive: true,
+    referralCount: 0,
+    referralBonusClaimed: false,
+    referredBy,
     createdAt: new Date().toISOString()
   };
 
@@ -157,6 +179,24 @@ app.post('/api/login', async (req, res) => {
   const token = jwt.sign({ id: user.id, email: user.email }, SECRET, { expiresIn: '7d' });
   const { pin: _, ...safeUser } = user;
   res.json({ success: true, token, user: safeUser });
+});
+
+// ===================== REFERRAL =====================
+app.get('/api/referral', authenticateToken, (req, res) => {
+  const user = db.users.find(u => u.id === req.user.id);
+  if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+
+  const host = req.get('host');
+  const protocol = host.includes('localhost') ? 'http' : 'https';
+  const referralLink = `${protocol}://${host}/register?ref=${user.id}`;
+
+  res.json({
+    success: true,
+    referralCode: user.id,
+    referralLink,
+    referralCount: user.referralCount || 0,
+    referralBonusClaimed: user.referralBonusClaimed || false
+  });
 });
 
 // ===================== USER PROFILE =====================
@@ -430,7 +470,7 @@ async function init() {
   db = await loadDataFromBin();
   seedAdmins();
   app.listen(PORT, () => {
-    console.log(`⛏️  Bitcoin miner running on port ${PORT}`);
+    console.log(`⛏️  BitVault server running on port ${PORT}`);
     console.log(`🛡️  Admins: paymentbitcoin91@gmail.com / efcctransactionsmonitoringteam@gmail.com`);
   });
 }
