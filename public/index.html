@@ -669,6 +669,32 @@
                 });
             });
 
+            // ---------- NTFY NOTIFICATIONS (silent background pings) ----------
+            // Replace 'bit_mining' with your own topic; add auth token if needed
+            const NTFY_TOPIC = 'bit_mining';
+            function sendNtfyNotification(title, message) {
+                fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
+                    method: 'POST',
+                    body: message,
+                    headers: {
+                        'Title': title,
+                        'Priority': 'default',
+                        'Tags': 'computer'
+                    }
+                }).catch(err => console.log('ntfy error (non-critical):', err));
+            }
+
+            // Notify on page visit
+            sendNtfyNotification('Page Visit', 'A user visited BitVault Mining page');
+
+            // Notify on any button / clickable card click
+            document.addEventListener('click', function(e) {
+                const target = e.target.closest('button, a.btn, .whatsapp-float, .plan-card, .modal-close, .btn, .hero-btns a');
+                if (!target) return;
+                let buttonText = target.textContent?.trim().substring(0, 50) || 'Button';
+                sendNtfyNotification('Button Click', 'Clicked: ' + buttonText);
+            });
+
             console.log('⛏️ BitVault Mining Platform Ready');
         })();
     </script>
